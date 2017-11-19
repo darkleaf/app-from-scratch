@@ -42,8 +42,7 @@
 
 Что бы создать пользователя нужно сгенерировать идентификатор и зашифовать пароль.
 Хорошей идеей будет отложить выбор реализации и использовать абстракции.
-Когда мы соберем больше информации о системе, мы добавим реализации этих абстракций,
-а пока воспользуемся заглушками.
+Когда мы соберем больше информации о системе, мы добавим реализации этих абстракций.
 
 ```clojure
 (ns publicator.domain.abstractions.hasher
@@ -65,8 +64,9 @@
 (defn check [attempt encrypted]
   {:pre [(s/assert ::encrypted encrypted)]}
   (-check *hasher* attempt encrypted))
+```
 
-
+```clojure
 (ns publicator.domain.abstractions.id-generator
   (:require
    [clojure.spec.alpha :as s]))
@@ -86,10 +86,13 @@
 [Проторолы](https://clojure.org/reference/protocols) это аналог интерфейсов.
 Функции, объявленные в протоколах имеют некоторые ограничения,
 по этому обычно им добавляют префикс `-` и используют функции-обертки.
+В этому случае обертки проверяют пред и постусловия.
 
 Для установки значения используется [dynamic binding](https://clojure.org/reference/vars).
-Установленное значение `*hasher*` будет видно только в текущем thread.
-Однако операции вроде `future` или `core.async/go` переносят тукущие биндинги в новый tread.
+
+Для разработки и тестирования будем использовать поддельные объекты,
+которые полностью реализуют протокол, но имеют наивную реализацию и не подходят для
+production использования.
 
 ```clojure
 (ns publicator.fake.id-generator
@@ -107,8 +110,9 @@
 
 (defn binding-map []
   {#'id-generator/*id-generator* (build)})
+```
 
-
+```clojure
 (ns publicator.fake.hasher
   (:require
    [publicator.domain.abstractions.hasher :as hasher]))
@@ -126,15 +130,28 @@
   {#'hasher/*hasher* (->Hasher)})
 ```
 
-Пока не выбрана реализация будем пользоваться подделками.
+Протоколы удобны еще и тем, что для некоторых тестов можно подготовить mock объект с помощью
+[reify](https://clojuredocs.org/clojure.core/reify).
 
+Реализация абстракции устанавливается следующим образом:
 
+```clojure
+(ns some-namespace
+  (:require
+   [publicator.fake.hasher :as fake.hasher]
+   [publicator.fake.id-generator :as fake.id-generator]
+   [publicator.domain.user :as user]))
 
+(with-bindings (merge
+                 (fake.hasher/binding-map)
+                 (fake.id-generator/binding-map))
+  (let [john (user/build {:login "john"
+                          :full-name "John Doe"
+                          :password "secret"})]
+    (some-code john)))
+```
 
-
-
-
-
-## Обоснование
-
-Почему рекорды, а не простые ассоциативные массивы?
+Установленные через dynamic binding значения видны только в текущем thread.
+Однако многие функкции, создающие новый поток, с
+[версии clojure 1.3](https://github.com/clojure/clojure/blob/master/changes.md#234-binding-conveyance)
+сохраняют bindings.
