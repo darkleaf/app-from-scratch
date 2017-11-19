@@ -7,6 +7,8 @@
 + [Cheatsheet](https://clojure.org/api/cheatsheet)
 + [Clojure for the Brave and True](https://www.braveclojure.com/)
 
+## Пользователь
+
 Для моделирования сущностей в clojure лучше всего подходят [записи(record)](https://clojure.org/reference/datatypes).
 
 ```clojure
@@ -130,7 +132,8 @@ production использования.
   {#'hasher/*hasher* (->Hasher)})
 ```
 
-Протоколы удобны еще и тем, что для некоторых тестов можно подготовить mock объект с помощью
+Протоколы удобны еще и тем, что для некоторых тестов можно подготовить
+специальный mock объект с помощью
 [reify](https://clojuredocs.org/clojure.core/reify).
 
 Реализация абстракции устанавливается следующим образом:
@@ -151,7 +154,63 @@ production использования.
     (some-code john)))
 ```
 
+## Сслыки на примеры в проекте
+
++ [User](https://github.com/darkleaf/publicator/blob/master/src/publicator/domain/user.clj)
++ [Post](https://github.com/darkleaf/publicator/blob/master/src/publicator/domain/post.clj)
++ [Hasher](https://github.com/darkleaf/publicator/blob/master/src/publicator/domain/abstractions/hasher.clj)
++ [Id generator](https://github.com/darkleaf/publicator/blob/master/src/publicator/domain/abstractions/id_generator.clj)
++ [bindings для тестов](https://github.com/darkleaf/publicator/blob/master/test/publicator/fixtures.clj)
+
+## Примечания
+
+Вместо записей для моделирования можно использовать простые ассоциативные массивы:
+
+```clojure
+{:type :user
+ :id 1
+ :login "john"}
+```
+
+Записи реализуют интерфейс ассоциативных массивов, а также могут реализовывать протоколы.
+В нашм случае записи и протоколы удобнее простоых ассоциативных массивов.
+В следующих разделах мы добавим Пользователю реализацию протокола.
+
+***
+
+Вместо установки реализации абстракции через dynamic binding можно было бы
+явно передавать контекст первым аргументом во все функции или использовать монаду reader.
+Явная передача контекста излишне многословна, а clojure предлагает стандарное решение для решения этой проблемы через механизм dynamic binding.
+
+Отмечу, что dynamic binding подходит не для всех случаев.
+В одном thread может быть только одно заначене. Фактически это singleton.
+Для наших абстракций это подходит.
+
 Установленные через dynamic binding значения видны только в текущем thread.
-Однако многие функкции, создающие новый поток, с
-[версии clojure 1.3](https://github.com/clojure/clojure/blob/master/changes.md#234-binding-conveyance)
-сохраняют bindings.
+И если вы создаете новый тред, то в нем уже не будет прежних binging.
+Однако многие clojure функкции и библиотеки сохраняют dynamic binding.
+Функции `send`, `send-off`, `pmap`, `future` сохраняют контекст начиная с [Clojure 1.3](https://github.com/clojure/clojure/blob/master/changes.md#234-binding-conveyance).
+
+***
+
+Функции могут проверять пред и постусловия.
+
+```clojure
+(defn foo [x]
+  {:pre [(int? x)]
+   :post [(string? %)]}
+  (str "x: " x))
+```
+
+`defn` это макрос, корорый разворачиваетя таким образом:
+
+```clojure
+(def foo
+  (fn*
+   ([x]
+    (assert (int? x))
+    (let [% (str "x: " x)]
+      (assert (string? %)) %))))
+```
+
+В свою очередь `assert` это тоже макрос, и для production окружения можно отключить проверки.
