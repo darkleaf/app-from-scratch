@@ -161,6 +161,8 @@ production использования.
 + [Hasher](https://github.com/darkleaf/publicator/blob/master/src/publicator/domain/abstractions/hasher.clj)
 + [Id generator](https://github.com/darkleaf/publicator/blob/master/src/publicator/domain/abstractions/id_generator.clj)
 + [bindings для тестов](https://github.com/darkleaf/publicator/blob/master/test/publicator/fixtures.clj)
++ [fake.hasher](https://github.com/darkleaf/publicator/blob/master/src/publicator/fake/hasher.clj)
++ [fake.id-generator](https://github.com/darkleaf/publicator/blob/master/src/publicator/fake/id_generator.clj)
 
 Реализация Пользователя и Поста отличаются от описанного в этом разделе,
 позже мы разберем эти отличия.
