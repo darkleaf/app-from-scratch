@@ -162,6 +162,9 @@ production использования.
 + [Id generator](https://github.com/darkleaf/publicator/blob/master/src/publicator/domain/abstractions/id_generator.clj)
 + [bindings для тестов](https://github.com/darkleaf/publicator/blob/master/test/publicator/fixtures.clj)
 
+Реализация Пользователя и Поста отличаются от описанного в этом разделе,
+позже мы разберем эти отличия.
+
 ## Примечания
 
 Здесь применяется принцип Dependency inversion из набора SOLID, который имеет следующую формулировку:
