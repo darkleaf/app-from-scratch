@@ -34,7 +34,7 @@
 + [Architecture, Use Cases, and High Level Design](https://cleancoders.com/episode/clean-code-episode-7/show)
 + [Clean Architecture: A Craftsman's Guide to Software Structure and Design (Robert C. Martin Series)](https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164)
 
-![https://raw.githubusercontent.com/darkleaf/building-application/master/img/clean_architecture.jpg](Clean architecture)
+![Clean architecture](https://raw.githubusercontent.com/darkleaf/building-application/master/img/clean_architecture.jpg)
 
 Clean architecture базируется на принципах SOLID, в особенности на принципе инверсии зависимости(dependency inversion).
 
