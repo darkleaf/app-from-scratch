@@ -52,13 +52,18 @@ Domain Driven Design(DDD) вводит понятия сущность(entity), 
 (defrecord User [id login full-name password-digest])
 ```
 
-Агрегат должен поддерживать свою целостоность.
-В clojure 1.9 появится функционал для описания спецификации данных - [clojure.spec](https://clojure.org/about/spec).
+Кроме всего прочего, агрегат должен поддерживать свою целостоность.
+В clojure 1.9 появится функционал для описания спецификации данных - [clojure.spec](https://clojure.org/about/spec),
+который отлично подходит для этой задачи. Чтобы валидировать агрегаты
+вне зависимости от их типа воспользуемся
+[протоколом(protocol)](https://clojure.org/reference/protocols):
 
-**TODO: дописать**
+```clojure
+(ns publicator.domain.protocols.aggregate
 
-В дальнейшем я покажу как проверять агрегат при каждом изменениию.
-
+(defprotocol Aggregate
+  (spec [this] "Aggregate validation spec"))
+```
 
 ```clojure
 (ns publicator.domain.user
@@ -78,6 +83,8 @@ Domain Driven Design(DDD) вводит понятия сущность(entity), 
   aggregate/Aggregate
   (spec [_] ::attrs))
 ```
+
+В дальнейшем я покажу, как валидитровать агрегат при каждом изменении.
 
 Теперь объявим службы созднания пользователя и проверки пароля:
 
@@ -200,6 +207,63 @@ production использования.
 специальный mock объект с помощью
 [reify](https://clojuredocs.org/clojure.core/reify).
 
+## Пост
+
+Пост реализован аналогично модели пользователя:
+
+```clojure
+(ns publicator.domain.post
+  (:require
+   [publicator.domain.abstractions.id-generator :as id-generator]
+   [publicator.domain.protocols.aggregate :as aggregate]
+   [clojure.spec.alpha :as s]))
+
+(s/def ::id ::id-generator/id)
+(s/def ::title (s/and string? #(re-matches #".{1,255}" %)))
+(s/def ::content string?)
+(s/def ::author-id ::id-generator/id)
+
+(s/def ::attrs (s/keys :req-un [::id ::author-id ::title ::content]))
+
+(defrecord Post [id author-id title content]
+  aggregate/Aggregate
+  (spec [_] ::attrs))
+
+(s/def ::build-params (s/keys :req-un [::title ::content ::author-id]))
+
+(defn build [params]
+  {:pre [(s/assert ::build-params params)]}
+  (let [id (id-generator/generate)]
+    (map->Post (merge params
+                      {:id id}))))
+
+(defn author? [post user]
+  (= (:author-id post)
+     (:id user)))
+```
+
+## Ассоциации(связи)
+
+Наши модели - это простые объекты в памяти,
+следовательно все ссылки между объектами однонапраленные.
+Т.е. если A содержит ссылку на B, то нет простого
+спрособа для B найти A.
+
+DDD посвящает целый пораграф теме ассоциаций.
+Важно сокращать количество связей, осталяя только значимые,
+и сводить связи к однонаправленным.
+Понятие агрегата было введено, в том числе,
+чтобы уменьшить и упорядочить связи между сущностями.
+
+В нашем простом случае пост содержит идентификатор автора.
+Однако, это не единственно решение. Пользователь может
+хранить массив идентификаторов созданных им постов.
+Важно решить какое направление связи важнее.
+Если бизнес-логика требует, чтобы пользователь знал
+кол-во созданных постов, то выбор очевиден.
+У этой схемы есть минус, т.к. несколько пользователей
+могут оказаться авторами одного поста.
+
 ## Сслыки на примеры в проекте
 
 + [User](https://github.com/darkleaf/publicator/blob/master/src/publicator/domain/user.clj)
@@ -244,7 +308,8 @@ production использования.
 Установленные через dynamic binding значения видны только в текущем thread.
 И если вы создаете новый тред, то в нем уже не будет прежних binging.
 Однако многие clojure функкции и библиотеки сохраняют dynamic binding.
-Функции `send`, `send-off`, `pmap`, `future` сохраняют контекст начиная с [Clojure 1.3](https://github.com/clojure/clojure/blob/master/changes.md#234-binding-conveyance).
+Функции `send`, `send-off`, `pmap`, `future` сохраняют контекст начиная с
+[Clojure 1.3](https://github.com/clojure/clojure/blob/master/changes.md#234-binding-conveyance).
 
 ***
 
@@ -257,7 +322,7 @@ production использования.
   (str "x: " x))
 ```
 
-`defn` это макрос, корорый разворачиваетя таким образом:
+`defn` это макрос, который разворачиваетя следующим образом:
 
 ```clojure
 (def foo
@@ -268,4 +333,4 @@ production использования.
       (assert (string? %)) %))))
 ```
 
-В свою очередь `assert` это тоже макрос, и для production окружения можно отключить проверки.
+В свою очередь `assert` это тоже макрос, и для production окружения можно отключить эти проверки.
