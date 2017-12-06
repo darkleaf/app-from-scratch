@@ -1,13 +1,132 @@
 # Абстракции хранилища
 
-Прежде чем переходить к сценариям использования необходимо разобраться как хранить данные.
+## Table Data Gateway
 
-Итак, мы определились, что будем строить приложение по мотивам clean architecture.
-И поняли принцип интверсии зависимости: модули верхнего уровня не зависят от модулей нижнего и оба зависят от абстракций.
+Самый простой способ работать с базой данных в clojure - реализовать паттерн
+[Table Data Gateway](https://www.martinfowler.com/eaaCatalog/tableDataGateway.html).
 
-Есть 2 подхода к работе с хранилищем:
-[Active record](https://www.martinfowler.com/eaaCatalog/activeRecord.html)
-и [Data mapper](https://www.martinfowler.com/eaaCatalog/dataMapper.html)
+```clojure
+(ns publicator.interactors.abstractions.gateway)
+
+(defprotocol Gateway
+  (-get-many [this ids])
+  (-put-many [this aggregates])
+  (-delete-many [this aggregates]))
+
+(declare ^:dynamic *gateway*)
+
+(defn get-many [ids]
+  (-get-many *gateway* ids))
+(defn put-many [aggregates]
+  (-put-many *gateway* aggregates))
+(defn delete-many [aggregates]
+  (-delete-many *gateway* aggregates))
+
+(defn get-one [id] ...)
+(defn put-one [aggregate] ...)
+(defn delete-one [aggreate] ...)
+```
+
+```clojure
+(ns publicator.interactors.some-interactor
+  (:require
+   [publicator.domain.post :as post]
+   [publicator.interactors.abstractions.gateway :as gateway]))
+
+...
+
+(defn perform [params]
+  ...
+  (let [user (gateway/get-one some-id)
+        post (post/build params)
+        post (assoc post :author-id (:id user))]
+    (gateway/put-one post)
+    ...))
+```
+
+Т.к. при создании сущности еще до сохранения в базу она получает идентификатор,
+то методы `insert` и `update` сливаются в `put`.
+
+В нашем приложении корни агрегатов имеют глобально уникальные идентификаторы.
+Если бы это было не так, то протокол был бы таким:
+
+```clojure
+(defprotocol Gateway
+  (-get-many [this klass ids])
+  (-put-many [this aggregates])
+  (-delete-many [this aggregates]))
+
+...
+
+(let [user (gateway/get-one User some-id)
+      post (gateway/get-one Post some-id)]
+  ...)
+```
+
+Или для каждого класса агрегата нужен был бы свой шлюз.
+
+При желании можно добавить поддержку транзакций:
+
+```clojure
+(defprotocol Gateway
+  (-get-many [this tx ids])
+  (-put-many [this tx aggregates])
+  (-delete-many [this tx aggregates])
+  (-wrap-tx [this body]))
+
+(defmacro with-tx [tx-name & body]
+  `(-wrap-tx *gateway* (fn [~tx-name] ~@body)))
+
+...
+
+(with-tx t
+  (gateway/put-one t user)
+  (gateway/put-one t post))
+```
+
+Шлюз подходит для простых приложений. Он требует дополнительного внимания от разработчика.
+
+Он не отображает идентификаторы на ссылки объектов в памяти.
+В примере ниже в памяти программы мы одновременно оперируем одним и тем же
+пользователем, но с разными состояниями. В итоге мы потеряем часть изменений:
+
+```clojure
+(let [user (gateway/get-one 1)
+      user (update user :achievements conj :fishing)
+      ...
+      author (gateway/get-one 1)
+      author (update author :achievements conj :writing)]
+  (gateway/put user)
+  (gateway/put author))
+```
+
+Если мы не изменили агрегат, то все равно будет запрос к базе данных:
+
+```clojure
+(let [user (gateway/get-one 1)]
+  (gateway/put user))
+```
+
+В сложных сценариях вы можете забыть сделать сохранение.
+Забыли сохранить пользователя:
+
+```clojure
+(let [user (gateway/get-one 1)
+      ...
+      user (update user :achievements conj :writing)
+      ...
+      post (gateway/get-one 2)
+      post (assoc post :title "New title")]
+  (gateway/put post))
+```
+
+Если приложение обрабатывает большой поток транзакций, то могут возникать dead-locks.
+Придется вручную расставлять блокировки.
+
+## Data Mapper
+
+[Data mapper](https://www.martinfowler.com/eaaCatalog/dataMapper.html)
+
 
 Как правило, фреймворки реализуют патерн Active record и предоставляют базовый класс для наших сущностей.
 Такой подход идет вразрез с принципом инверсии зависимости.

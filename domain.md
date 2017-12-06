@@ -207,6 +207,14 @@ production использования.
 специальный mock объект с помощью
 [reify](https://clojuredocs.org/clojure.core/reify).
 
+Binding установливается с помощью функции [with-bindings](https://clojuredocs.org/clojure.core/with-bindings).
+
+```clojure
+(with-bindings (merge (hasher/binding-map)
+                      (id-generator/binding-map))
+  (some-code))
+```
+
 ## Пост
 
 Пост реализован аналогично модели пользователя:
