@@ -47,7 +47,9 @@
 * паттерном Identity Map
 
 У меня получилось осмыслить и реализовать эти идеи только после экспериментов
-с языком [Clojure](https://clojure.org/about/rationale).
+с языком Clojure. Первое впечателние можно сформировать на основе:
+[rationale](https://clojure.org/about/rationale) и
+[Effective Programs, 10 Years of Clojure](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/EffectivePrograms.md).
 Clojure поддерживает динамический полиморфизм, что позволяет использовать многие ООП подходы,
 разделяет состояние и идентичность, в противоположность императивным языкам,
 что позволяет тривиально отслеживать изменения при разработки слоя сохранения данных.
