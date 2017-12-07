@@ -163,15 +163,25 @@ deadlock. Бизнес транзакция может выполняться о
 
 ### Модель времени
 
-Для начала разберемся с моделью времени в clojure.
-
-
+Пережде чем продолжить, нужно понять модель времени Clojure.
+Rich Hickey подробно рассказал о ней в своем докладе
+[Are We There Yet?](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md).
+Я приведу пару слайдов, которые важны для понимания текущего раздела.
 
 <img src="img/identity_state_value.jpg" alt="Identity, state, value">
 <img src="img/time_model.jpg" alt="Identity, state, value">
 
+Будем считать время дискретным.
+Представим реку, например Волгу.
+В каждый квант времени ее можно представить как некое значение.
+Это значение должно быть неизменяемым, т.к. нет способа вернуться в прошлое.
+Процессы, происходящие с Волгой моделируются как чистая функция,
+принимающая значение для предыдущего кванта и возвращающая значение
+для текущего.
+Люди ассоциируют череду этих значений как одно цело целое - Волгу.
+Это и есть идентичность.
 
-Rich Hickey [Are We There Yet?](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md)
+
 
 
 
