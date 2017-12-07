@@ -30,7 +30,7 @@
 + [Architecture, Use Cases, and High Level Design](https://cleancoders.com/episode/clean-code-episode-7/show)
 + [Clean Architecture: A Craftsman's Guide to Software Structure and Design (Robert C. Martin Series)](https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164)
 
-![Clean architecture](https://raw.githubusercontent.com/darkleaf/building-application/master/img/clean_architecture.jpg)
+<img src="https://raw.githubusercontent.com/darkleaf/building-application/master/img/clean_architecture.jpg" alt="Clean architecture">
 
 Самый верхний слой - слой сущностей(entities) описывает самые общие бизнес-правила.
 Если бы у нас не было компьютеров, бизнес все равно бы оперировал понятиями из этого слоя.
