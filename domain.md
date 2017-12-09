@@ -37,10 +37,9 @@ Domain Driven Design(DDD) вводит понятия сущность(entity), 
 Дальше будут примеры кода на Clojure, если вы не знакомы с этим языком,
 вот материалы, которые помогут разобраться:
 
-+ [Reference](https://clojure.org/reference/documentation)
++ [Getting Started](https://clojure.org/guides/getting_started)
 + [Clojure for the Brave and True](https://www.braveclojure.com/)
 + [Cheatsheet](https://clojure.org/api/cheatsheet)
-
 
 ## Пользователь
 

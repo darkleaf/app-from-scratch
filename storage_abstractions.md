@@ -145,9 +145,8 @@
 Identity map задает соответствие между идентификатором сущности и ссылкой на объект.
 Таким образом, повторно запрашивая сущность из хранилища вы получите тот же самый объект.
 
-Unit of work отслеживает изменения объектов в памяти и автоматически фиксирует изменения
-в конце бизнес-транзакции.
-Причем, можно использовать оптимистические блокировки.
+Unit of work отслеживает изменения объектов в памяти и автоматически фиксирует изменения.
+Как правило, для этого используются оптимистические блокировки.
 Т.е. мы разрываем связь между бизнес-транзакцией и транзакцией базы данных:
 
 + вычитываем из базы состояние агрегата и его версию
@@ -171,51 +170,228 @@ Rich Hickey подробно рассказал о ней в своем докл
 <img src="img/identity_state_value.jpg" alt="Identity, state, value">
 <img src="img/time_model.jpg" alt="Identity, state, value">
 
-Будем считать время дискретным.
-Представим реку, например Волгу.
-В каждый квант времени ее можно представить как некое значение.
+Смоделируем реку Волгу.
+В нашей модели время будет дискретным.
+В каждый квант времени реку можно представить как некое значение,
+например расположение и тип атомов вещества в данный момент.
 Это значение должно быть неизменяемым, т.к. нет способа вернуться в прошлое.
 Процессы, происходящие с Волгой моделируются как чистая функция,
 принимающая значение для предыдущего кванта и возвращающая значение
 для текущего.
-Люди ассоциируют череду этих значений как одно цело целое - Волгу.
-Это и есть идентичность.
+Люди ассоциируют череду этих значений с названием Волга.
 
+Фактически речь идет о том, что есть неизменяемое значение и
+контейнер, позволяющий контроллируемым образом изменять свое содежимое.
 
+Подробнее можно прочитать в [Values and Change: Clojure’s approach to Identity and State](https://clojure.org/about/state).
 
+### Моделирование идентичности агрегата
 
+```clojure
+(ns publicator.interactors.abstractions.storage
+  (:refer-clojure :exclude [swap!])
+  (:require
+   [medley.core :as medley]
+   [publicator.domain.protocols.aggregate :as aggregate]))
 
+(defprotocol AggregateBox
+  (-set! [this new])
+  (-id [this])
+  (-version [this]))
 
+(defn box? [x]
+  (and
+   (satisfies? AggregateBox x)
+   (instance? clojure.lang.IDeref x)))
 
-## Хранилище
+(defn id [box]
+  {:pre [(box? box)]}
+  (-id box))
 
-Хранилище - это нечто, что сохраняет состояние сущностей.
-Я очень долго думал и искал различные варианты того, как работать с хранилищем.
+(defn version [box]
+  {:pre [(box? box)]}
+  (-version box))
 
+(defn destroy! [box]
+  {:pre [(box? box)]}
+  (-set! box nil))
 
-Модель предметной области находится в модулях самого высокого уровня.
-Сущности не могут зависеть от
+(defn swap! [box f & args]
+  {:pre [(box? box)]}
+  (let [old (aggregate/nilable-assert @box)
+        new (aggregate/nilable-assert (apply f old args))]
+    (assert (or (nil? old)
+                (nil? new)
+                (and (= (:id old) (:id new))
+                     (= (class old) (class new)))))
+    (-set! box new)
+    new))
+```
 
-то сущности не должны зависеть
-Сущности не должны зависеть от абстракции
+За идентичность агрегата отвечает тип, реализующий протокол `AgregateBox`
+и интерфейс `clojure.lang.IDeref`.
 
++ `clojure.lang.IDeref`
+  + `deref`, `@` - получеие текущего состояния
++ `AgregateBox`
+  + `id` - получение идентификатора агрегата, в том числе удаленого
+  + `version` - получение версии агрегата, в том числе удаленого
+  + `swap!` - изменение агрегата с проверками целостности
+  + `destroy!` - удаляет агрегат, устанавливает его состояние в `nil`
 
-Существуют
+В разделе "Предметная область" я упоминал, что агрегат должен поддерживать свою целостность,
+для этого мы добавили спецификацию. Функция `swap!` при каждом изменении проверяет
+соответситве состояния спецификации. Проверки раелизованы с помощью макроса `assert`
+и могут быть удалены в production окружении, т.е. не повлияют на производительность.
 
-Для работы с сущностями нужна абстракция со следующими свойствами:
+### Моделирование хранишища
 
-+ извлечение сущности по ее идентификатору
-+ повторное извлечение сущности по идентификатору
-  возвращает тот же объект что и предыдущее извлечение
-  (Identity map)
-+ сущности ничего не знают про хранилище,
-  мы работаем с сущностаями как с простыми структурами данных
-  (Datamapper)
-+ поддержка ACID транзакций
+Продолжение предыдущего листинга:
 
+```clojure
 
-Есть несколько требований
+(defprotocol Storage
+  (-wrap-tx [this body]))
 
+(defprotocol Transaction
+  (-get-many [this ids])
+  (-create [this state]))
 
-Хранилище нужно для сохраниения состояния сущностей.
-Это может быть mysql, postgres, mongodb, elasticsearch, redis, файл, оперативная память.
+(declare ^:dynamic *storage*)
+
+(defmacro with-tx
+  "Note that body forms may be called multiple times,
+   and thus should be free of side effects."
+  [tx-name & body-forms-free-of-side-effects]
+  `(-wrap-tx *storage* (fn [~tx-name] ~@body-forms-free-of-side-effects)))
+
+(defmacro ^:private assert-idempotence [form message]
+  `(let [first-result# ~form]
+     (assert (= first-result# ~form) ~message)
+     first-result#))
+
+(defn get-many [tx ids]
+  {:pre [(every? some? ids)]
+   :post [(map? %)
+          (<= (count %) (count ids))
+          (every? box? (vals %))]}
+  (assert-idempotence (-get-many tx ids) "Identity Map isn't implemented!"))
+
+(defn get-one [tx id]
+  {:post [((some-fn nil? box?) %)]}
+  (let [res (get-many tx [id])]
+    (get res id)))
+
+(defn create [tx state]
+  {:post [(box? %)]}
+  (-create tx state))
+
+;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(defn tx-get-one [id]
+  (with-tx tx
+    (when-let [x (get-one tx id)]
+      @x)))
+
+(defn tx-get-many [ids]
+  (with-tx tx
+    (->> ids
+         (get-many tx)
+         (medley/map-vals deref))))
+
+(defn tx-create [state]
+  (with-tx t
+    @(create t state)))
+
+(defn tx-swap! [id f & args]
+  (with-tx t
+    (when-let [x (get-one t id)]
+      (apply swap! x f args))))
+
+(defn tx-destroy! [id]
+  (with-tx t
+    (let [x (get-one t id)]
+      (destroy! x))))
+```
+
+Принципиальные моменты:
+
++ Тело транзакции можно быть выполенено несколько раз. Т.к. используются оптимистические
+  блокировки, то в случае обнаружения конфликтов, транзакцию нужно перезапустить.
++ Абстракция проверяет наличие Identity Map в реализации.
+
+```clojure
+(t/deftest create
+  (let [entity (storage/tx-create (build-test-entity))]
+    (t/is (some? entity))
+    (t/is (some? (storage/tx-get-one (:id entity))))))
+
+(t/deftest swap
+  (let [entity (storage/tx-create (build-test-entity))
+        _      (storage/tx-swap! (:id entity) update :counter inc)
+        entity (storage/tx-get-one (:id entity))]
+    (t/is (= 1 (:counter entity)))))
+
+(t/deftest destroy
+  (let [entity (storage/tx-create (build-test-entity))
+        _      (storage/tx-destroy! (:id entity))
+        entity (storage/tx-get-one (:id entity))]
+      (t/is (nil? entity))))
+
+(t/deftest nop
+  (let [id (storage/with-tx t
+             (let [entity (storage/create t (build-test-entity))]
+               (storage/destroy! entity)
+               (storage/id entity)))]
+    (t/is (nil? (storage/tx-get-one id)))))
+
+(t/deftest identity-map-persisted
+  (let [id (:id (storage/tx-create (build-test-entity)))]
+    (storage/with-tx t
+      (let [x (storage/get-one t id)
+            y (storage/get-one t id)]
+        (t/is (identical? x y))))))
+
+(t/deftest identity-map-in-memory
+  (storage/with-tx t
+    (let [x (storage/create t (build-test-entity))
+          y (storage/get-one t (storage/id x))]
+      (t/is (identical? x y)))))
+
+(t/deftest identity-map-swap
+  (storage/with-tx t
+    (let [x (storage/create t (build-test-entity))
+          y (storage/get-one t (storage/id x))
+          _ (storage/swap! x update :counter inc)]
+      (t/is (= 1 (:counter @x) (:counter @y))))))
+```
+
+Чтоыб создать агрегат, нужно передать функции `storage/create`
+транзакцию и состояние агрегата. Таким обаразом мы зарегистрируем новый агрегат в
+Unit of Work и Identity map.
+
+Для изменения агрегата не требуется объект транзакции, следовательно `box` можно легко
+передавать в функции:
+
+```clojure
+(storage/with-tx t
+  (let [entity (storage/get-one t 1)]
+    (action-1 entity)
+    (action-2 entity)))
+```
+
+Решение для N+1 запросов:
+
+```clojure
+(let [ids (fetch-some-posts-ids)]
+  (storage/with-tx t
+    (let [posts-by-id (storage/get-many t ids) ;; first storage access
+          authors-ids (->> posts-by-id
+                           (vals)
+                           (map deref)
+                           (map :author-id))
+          _           (storage/get-many t authors-ids)] ;; second storage access
+      (doseq [post (vals posts-by-id)
+              :let [author (storage/get-one t (:author-id @post))]] ;; identiity map cache
+        (prn @author)))))
+```
