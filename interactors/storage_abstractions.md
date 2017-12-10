@@ -395,3 +395,154 @@ Unit of Work и Identity map.
               :let [author (storage/get-one t (:author-id @post))]] ;; identiity map cache
         (prn @author)))))
 ```
+
+### Запросы
+
+Эта абстракция позволяет извлекать агрегаты только по их id.
+Это сделано намерено.
+
+**Проблема 1**. Представим ситуацию:
+
++ начали бизнес-транзакцию
++ извлекли пользователя по его id
++ сменили ему город проживания с "Сакнт-Петербург" на "Москва"
++ выбираем пользователей, проживающих в городе "Москва"
+
+Должен ли наш пользователь попасть в эту выборку?
+Бизнес транзакция не соответствует транзакции хранилища,
+и хранилище не знает о изменении нашего ползователя.
+Наверное, можно каким-то хитрым образом подправлять результаты выборки,
+но оно того не стоит.
+
+**Проблема 2**. На каком языке описывать запросы?
+В наша абстракция протекает до конкретной реализации SQL в конкретной базе данных?
+Сделать универсальный ограниченный язык запросов?
+
+**Решение**. Мы разделим абстракции. Есть абстракция хранилища,
+она поддерживает поиск по id, реализует Identity Map и Unit of Work.
+А есть абстракция запроса, который возвращает некие данные.
+Например, нам нужно найти пользователя по его email,
+для этого мы объявляем соответствующую абстракцию:
+
+```clojure
+(ns publicator.interactors.abstractions.user-queries
+  (:require
+   [publicator.domain.user])
+  (:import
+   [publicator.domain.user User]))
+
+(defprotocol GetByLogin
+  (-get-by-login [this login]))
+
+(declare ^:dynamic *get-by-login*)
+
+(defn get-by-login [login]
+  {:post [(or (nil? %)
+              (instance? User %))]}
+  (-get-by-login *get-by-login* login))
+```
+
+Отмечу, что `get-by-login` возвращает не идентичность пользователя
+(рализацию протокола AggregateBox), а его стостояние(записть User).
+
+Если нам нужно изменить этого пользователя, то нужно воспрользоваться абстракцией
+хранилища, и снова найти пользователя, только теперь уже по его идентификатору
+полученному ранее.
+
+Запросы могут возвращать все что угодно, любые структуры данных.
+
+Повторно извлекать теже самые данные(в некоторых случаях) может показаться странным,
+но это не так. Предположим у нас есть несколько баз: мастер и ассинхронная реплика,
+или мастер и поисковый движок вроде ElasticSearch. Данные в реплике отстают от мастера.
+Мастер хранит актуальные данные. Так вот, абстракция хранилища работает с мастером,
+а абстракции запросов работают с репликами. Повторно запрашивая данные мы уходим от проблем,
+возникающих при нарушении согласованности баз.
+
+### Команды
+
+Абстракция хранилища - не единственный способ изменять данные.
+Наверняка, может случиться ситуация с которой не справится эта абстракция.
+Но вы всегда можете объявить абстракцию команды.
+
+### Поддельная реализация
+
+Для разработки нужна какая-то реализация абстракций.
+Нам не нужны ACID гарантии:
+мы не беспокоемся о сохранности данных,
+мы не работаем в несколько потоков.
+Поэтому наше фейковое хранилище максимально просто, хранит данные в памяти и
+не имеет изоляции транзакций:
+
+```clojure
+(ns publicator.fake.storage
+  "Storage with fake transactions.
+   No isolation, no rollback."
+  (:require
+   [publicator.interactors.abstractions.storage :as storage]))
+
+(deftype AggregateBox [volatile id]
+  clojure.lang.IDeref
+  (deref [_] @volatile)
+
+  storage/AggregateBox
+  (-set! [_ new] (vreset! volatile new))
+  (-id [_] id)
+  (-version [_] nil))
+
+(defn- build-box [state id]
+  (AggregateBox. (volatile! state) id))
+
+(deftype Transaction [db]
+  storage/Transaction
+  (-get-many [_ ids]
+    (select-keys @db ids))
+
+  (-create [_ state]
+    (let [id  (:id state)
+          box (build-box state id)]
+      (swap! db assoc id box)
+      box)))
+
+(deftype Storage [db]
+  storage/Storage
+  (-wrap-tx [_ body]
+    (let [t (Transaction. db)]
+      (body t))))
+
+(defn build-db []
+  (atom {}))
+
+(defn binding-map [db]
+  {#'storage/*storage* (->Storage db)})
+```
+
+[`volatile!`](https://clojuredocs.org/clojure.core/volatile%21) это аналог Atom,
+только без контроля параллельного доступа.
+Этот ссылочнй объект имеет тривиальную [реализацию](https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/Volatile.java).
+
+Запросы реализуются схожим образом:
+
+```clojure
+(ns publicator.fake.user-queries
+  (:require
+   [publicator.interactors.abstractions.user-queries :as user-q])
+  (:import
+   [publicator.domain.user User]))
+
+(deftype GetByLogin [db]
+  user-q/GetByLogin
+  (-get-by-login [_ login]
+    (->> db
+         (deref)
+         (vals)
+         (map deref)
+         (filter #(instance? User %))
+         (filter #(= login (:login %)))
+         (first))))
+
+(defn binding-map [db]
+  {#'user-q/*get-by-login* (->GetByLogin db)})
+```
+
+Отмечу, что они могут использовать одну и ту же базу данных, которая устанавливается через
+функцию `binding-map`. Объект базы данных создается фукнцией `publicator.fake.storage.build-db`
