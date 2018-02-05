@@ -5,4 +5,5 @@
 * [Проект](project.md)
 * [Предметная область](domain.md)
 * [Сценарии использования](interactors.md)
-  * [Абстракции хранилища](interactors/storage_abstractions.md)
+  * [Команды/Запросы](interactors/command_query.md)
+  * [Data Mapper](interactors/data_mapper.md)
