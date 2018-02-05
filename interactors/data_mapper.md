@@ -36,8 +36,8 @@ Rich Hickey подробно рассказал о ней в своем докл
 [Are We There Yet?](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md).
 Я приведу пару слайдов, которые важны для понимания текущего раздела.
 
-<img src="img/identity_state_value.jpg" alt="Identity, state, value">
-<img src="img/time_model.jpg" alt="Identity, state, value">
+<img src="/img/identity_state_value.jpg" alt="Identity, state, value">
+<img src="/img/time_model.jpg" alt="Identity, state, value">
 
 Смоделируем реку Волгу.
 В нашей модели время будет дискретным.
