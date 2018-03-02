@@ -301,7 +301,7 @@ Clojure - полная противоположность привычным О�
 (let [val :val
       c (reify P
           (m [_] val))]
-  (assert (= :val (m c))))
+  (assert (= val (m c))))
 ```
 
 ## Expression problem
