@@ -121,11 +121,11 @@ function process(params) {
 Это напоминает железную дорогу.
 Функцию `check-logged-out=` можно представить так:
 
-<img src="/new/img/Recipe_RailwaySwitch.png">
+<img src="/new/img/Recipe_RailwaySwitch.png" alt="railway fn">
 
 А `let=` комбинирует подобные функции следующим образом:
 
-<img src="/new/img/Recipe_RailwaySwitch2.png">
+<img src="/new/img/Recipe_RailwaySwitch2.png" alt="railway composition">
 
 Из-за анологии с рельсами, наши функции, возвращающие `either` будут заканчиваться на `=`.
 
