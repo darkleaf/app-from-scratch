@@ -121,6 +121,10 @@ function process(params) {
 Это напоминает железную дорогу.
 Функцию `check-logged-out=` можно представить так:
 
+
+<img src="/img/identity_state_value.jpg" alt="Identity, state, value">
+
+
 <img src="/new/img/Recipe_RailwaySwitch.png" alt="railway fn">
 
 А `let=` комбинирует подобные функции следующим образом:
