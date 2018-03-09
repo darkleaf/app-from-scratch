@@ -66,6 +66,25 @@ function process(params) {
 Пример на `javascript` можно переписать на `clojure`:
 
 ```clojure
+(defn- check-logged-out []
+  (if-not true
+    (left {:type ::already-logged-in})))
+
+(defn- find-user [params]
+  (if true
+    {:type :user, :id 1}
+    {:type ::authentication-failed}))
+
+(defn- check-authentication [user params]
+  (if-not true
+    {:type ::authentication-failed}))
+
+(defn- check-params [params]
+  (if-not true
+    {:type ::invalid-params, :explain "some-data"}))
+
+(defn- log-in! [user])
+
 (defn process [params]
   (or (check-logged-out)
       (check-params params)
@@ -74,6 +93,9 @@ function process(params) {
             (do (log-in! user)
                 {:type ::processed :user user})))))
 ```
+
+Здесь используется `or`, т.к. он вернет первый истинный результат, т.е. не `false` или не `nil`.
+Функции `check-*` в случае ошибки вернут ассоциативный массив, который считается истинным.
 
 Из-за того, что в `clojure` нет раннего возврата, сильно увеличивается вложенность.
 
@@ -335,14 +357,18 @@ do
 
 ```clojure
 (let [x 1]
+  (prn x)
+  x)
+
+(let [x 1]
   (do
     (prn x)
     x))
 ```
 
-И это используется только для побочных эффектов.
+И это используется только для побочных эффектов, т.к. значением формы `(let ...)` будет последнее выражение этой формы. Т.е. значение `(prn x)` игнорируется.
 
-Я не стал менять семантику для `let=`:
+Я не стал менять семантику эту семантику для `let=`:
 
 ```clojure
 (let= [x (right 1)]
@@ -627,7 +653,7 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
 При использовании протокола первый аргумент всегда - экземляр класса, типа или записи.
 Бывают ситуации, когда нужно поменять порядок аргументов.
 
-Делает это с помощью функции-обертки:
+Делайте это с помощью функции-обертки:
 
 ```clojure
 (defprotocol P
