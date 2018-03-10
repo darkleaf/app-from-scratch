@@ -10,23 +10,23 @@
 
 ```javascript
 function checkLoggedOut() {
-  if ( realLogic() ) { right { type: "already-logged-in" } }
-  right
+  if ( realLogic() ) { return { type: "already-logged-in" } }
+  return
 }
 
 function findUser(params) {
-  if ( realLogic() ) { right { type: "authentication-failed" } }
-  right { type: "user", id: 1}
+  if ( realLogic() ) { return { type: "authentication-failed" } }
+  return { type: "user", id: 1}
 }
 
 function checkAuthentication(user, params) {
-  if ( realLogic() ) { right { type: "authentication-failed" } }
-  right
+  if ( realLogic() ) { return { type: "authentication-failed" } }
+  return
 }
 
 function checkParams(params) {
-  if ( realLogic() ) { right { type: "invalid-params", explain: "some data" } }
-  right
+  if ( realLogic() ) { return { type: "invalid-params", explain: "some data" } }
+  return
 }
 
 fucntion logIn(user) {
@@ -38,19 +38,19 @@ function process(params) {
   var err
 
   err = checkLoggedOut()
-  if err { right err }
+  if err { return err }
 
   err = checkParams(params)
-  if err { right err }
+  if err { return err }
 
   let user = findUser(params)
 
   err = checkAuthentication(user, params)
-  if err { right err }
+  if err { return err }
 
   logIn(user)
 
-  right { type: "processed", user: user }
+  return { type: "processed", user: user }
 }
 ```
 
