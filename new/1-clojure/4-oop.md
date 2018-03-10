@@ -232,31 +232,56 @@ Clojure - полная противоположность привычным О�
   (assert (can-create-user? admin)))
 ```
 
-Бенчмарк:
+Бенчмарк с помощью [criterium](https://github.com/hugoduncan/criterium):
 
 ```clojure
-(defprotocol P
-  (m [this]))
+(require '[criterium.core :as c])
+
+(defprotocol Proto
+  (method [this]))
 
 (defrecord A [])
 
 (extend A
-  P
-  {:m (fn [_] true)})
+  Proto
+  {:method (fn [_] :ok)})
 
 (defrecord B []
-  P
-  (m [_] true))
+  Proto
+  (method [_] :ok))
 
-(let [a (->A)]
-  (time (m a)))
+(do
+  (let [a (->A)]
+    (c/bench
+     (method a)))
 
-(let [b (->B)]
-  (time (m b)))
+  (let [b (->B)]
+    (c/bench
+     (method b))))
 ```
 
-Для A - "Elapsed time: 0.284094 msecs", для B - "Elapsed time: 0.037637 msecs".
-Т.е. вызов происходит на порядок быстрее.
+```
+Evaluation count : 3652721640 in 60 samples of 60878694 calls.
+             Execution time mean : 9.284840 ns
+    Execution time std-deviation : 0.664706 ns
+   Execution time lower quantile : 8.490886 ns ( 2.5%)
+   Execution time upper quantile : 10.647587 ns (97.5%)
+                   Overhead used : 7.473709 ns
+
+Found 1 outliers in 60 samples (1.6667 %)
+    low-severe   1 (1.6667 %)
+ Variance from outliers : 53.4630 % Variance is severely inflated by outliers
+
+Evaluation count : 5103040980 in 60 samples of 85050683 calls.
+             Execution time mean : 4.418015 ns
+    Execution time std-deviation : 0.170834 ns
+   Execution time lower quantile : 4.079148 ns ( 2.5%)
+   Execution time upper quantile : 4.747486 ns (97.5%)
+                   Overhead used : 7.473709 ns
+```
+
+Для A среднее время - 9.284840 ns, а для B - 4.418015 ns.
+Т.е. вызов происходит в 2 раза быстрее.
 
 Стоит отметить, что если вы хотите добавить метод для работы с конкретной записью,
 то вам не нужен полиморфизм, и достаточно воспользоваться обычной функцией:
@@ -280,28 +305,28 @@ Clojure - полная противоположность привычным О�
 (defrecord A [])
 (defrecord B [])
 
-(defprotocol P
-  (m [this]))
+(defprotocol Proto
+  (method [this]))
 
-(let [impl {:m (fn [_] :some-body)}]
-  (extend A P impl)
-  (extend B P impl))
+(let [impl {:method (fn [_] :some-body)}]
+  (extend A Proto impl)
+  (extend B Proto impl))
 
-(assert (= (m (->A))
-           (m (->B))))
+(assert (= (method (->A))
+           (method (->B))))
 ```
 
 Кроме всего этого, есть возможность создать анонимную реализацию протокола с помощью `reify`.
 `reify` также поддерживает замыкания:
 
 ```clojure
-(defprotocol P
-  (m [this]))
+(defprotocol Proto
+  (method [this]))
 
-(let [val :val
-      c (reify P
-          (m [_] val))]
-  (assert (= val (m c))))
+(let [val      :val
+      instance (reify Proto
+                 (method [_] val))]
+  (assert (= val (method instance))))
 ```
 
 ## Expression problem
