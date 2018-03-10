@@ -69,7 +69,7 @@ function process(params) {
 ```clojure
 (defn- check-logged-out []
   (if-not true
-    (left {:type ::already-logged-in})))
+    {:type ::already-logged-in}))
 
 (defn- find-user [params]
   (if true
