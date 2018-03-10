@@ -1,53 +1,56 @@
 # Практика
 
-В качестве практики реализуем монаду either. Для тех, кто знает haskell,
-это будет нечто вроде `EitherT a (IO b)`.
+В качестве практики реализуем монаду Either.
+
+Не бойтесь слова "монада" и просто примите как данность, что Either это монада.
+В конце будет материал для любознательных.
 
 Рассмотрим программу на javascript. Это сценарий входа в систему.
-Детали проверок опущены.
+Детали функций заменены заглушкой `realLogic()`.
 
 ```javascript
 function checkLoggedOut() {
-  if false { return { type: "already-logged-in" } }
-  return
+  if ( realLogic() ) { right { type: "already-logged-in" } }
+  right
 }
 
 function findUser(params) {
-  if false { return { type: "authentication-failed" } }
-  return { type: "user", id: 1}
+  if ( realLogic() ) { right { type: "authentication-failed" } }
+  right { type: "user", id: 1}
 }
 
 function checkAuthentication(user, params) {
-  if false { return { type: "authentication-failed" } }
-  return
+  if ( realLogic() ) { right { type: "authentication-failed" } }
+  right
 }
 
 function checkParams(params) {
-  if false { return { type: "invalid-params", explain: "some data" } }
-  return
+  if ( realLogic() ) { right { type: "invalid-params", explain: "some data" } }
+  right
 }
 
 fucntion logIn(user) {
-    return
+    realLogic()
+    right
 }
 
 function process(params) {
   var err
 
   err = checkLoggedOut()
-  if err { return err }
+  if err { right err }
 
   err = checkParams(params)
-  if err { return err }
+  if err { right err }
 
   let user = findUser(params)
 
   err = checkAuthentication(user, params)
-  if err { return err }
+  if err { right err }
 
   logIn(user)
 
-  return { type: "processed", user: user }
+  right { type: "processed", user: user }
 }
 ```
 
@@ -67,24 +70,25 @@ function process(params) {
 Пример на `javascript` можно переписать на `clojure`:
 
 ```clojure
-(defn- check-logged-out []
-  (if-not true
-    (left {:type ::already-logged-in})))
+(defn check-logged-out []
+  (if (real-logic)
+    {:type ::already-logged-in}))
 
-(defn- find-user [params]
-  (if true
-    {:type :user, :id 1}
+(defn find-user [params]
+  (if (real-logic)
+    {:type ::authentication-failed}
+    {:type :user, :id 1}))
+
+(defn check-authentication [user params]
+  (if (real-logic)
     {:type ::authentication-failed}))
 
-(defn- check-authentication [user params]
-  (if-not true
-    {:type ::authentication-failed}))
-
-(defn- check-params [params]
-  (if-not true
+(defn check-params [params]
+  (if (real-logic)
     {:type ::invalid-params, :explain "some-data"}))
 
-(defn- log-in! [user])
+(defn log-in! [user]
+  (real-logic))
 
 (defn process [params]
   (or (check-logged-out)
@@ -100,32 +104,36 @@ function process(params) {
 
 Из-за того, что в `clojure` нет раннего возврата, сильно увеличивается вложенность.
 
-Но есть способ лучше. Мы можем воспользоваться монадой either.
-Появляется 2 обертки: `left` и `right`. Если в вычислении встречается значение `left`,
-то вычисление прерывается и сразу возвращается это значение.
+Но есть способ лучше. Мы можем воспользоваться either.
+Появляется 2 обертки: `left` и `right`. Если в вычислении встречается значение Left,
+то вычисление прерывается и сразу возвращается это значение. Можно провести аналогию с железной дорогой.
+Если в процессе встречаетя Left, то движение идет по красной ветке:
+
+<img src="/new/1-clojure/img/Recipe_RailwaySwitch2.png" alt="railway composition">
 
 ```clojure
-(defn- check-logged-out= []
-  (if true
-    (right)
-    (left {:type ::already-logged-in})))
+(defn check-logged-out= []
+  (if (real-logic)
+    (left {:type ::already-logged-in})
+    (right)))
 
-(defn- find-user= [params]
-  (if true
-    (right {:type :user, :id 1})
-    (left {:type ::authentication-failed, :explain "some-data"})))
+(defn find-user= [params]
+  (if (real-logic)
+    (left {:type ::authentication-failed, :explain "some-data"})
+    (right {:type :user, :id 1})))
 
-(defn- check-authentication= [user params]
-  (if true
-    (right)
-    (left {:type ::authentication-failed})))
+(defn check-authentication= [user params]
+  (if (real-logic)
+    (left {:type ::authentication-failed})
+    (right)))
 
-(defn- check-params= [params]
-  (if true
-    (right)
-    (left {:type ::invalid-params})))
+(defn check-params= [params]
+  (if (real-logic)
+    (left {:type ::invalid-params})
+    (right)))
 
-(defn- log-in! [user])
+(defn log-in! [user]
+  (real-logic))
 
 (defn process= [params]
   (let= [ok (check-logged-out=)
@@ -133,10 +141,8 @@ function process(params) {
          user (find-user= params)
          ok (check-authentication= user params)]
     (log-in! user)
-    (return {:type ::processed :user user})))
+    (right {:type ::processed :user user})))
 ```
-
-`return` - это функция, синоним `right`.
 
 Т.е. если `check-authentication=` вернет `(left {:type ::authentication-failed})`,
 то и функция `process=` вернет то же самое.
@@ -150,101 +156,242 @@ function process(params) {
 
 <img src="/new/1-clojure/img/Recipe_RailwaySwitch2.png" alt="railway composition">
 
-Из-за анологии с рельсами, наши функции, возвращающие `either` будут заканчиваться на `=`.
+Из-за анологии с рельсами, наши функции, возвращающие Either будут заканчиваться на `=`.
 
 Подробности можно узнать из статьи
 [Railway oriented programming](https://fsharpforfunandprofit.com/posts/recipe-part2/)
 
 Таким образом, мы не используем ранний возврат и исключения.
 
+В случае с javascript можно провести аналогию с механизмом `Promise`.
+Однако, он позволит строить только цепочки, в отличие от `let=`, который позволяет строить сложные
+зависимости.
+
 ## Соглашения именования
 
 + `f=` - функция, возвращающая `either`
 + `fs=` - коллекция функций, возвращающих `either`
-+ `mv` - монадное значение, значение завернутое в `either`
++ `mv` - значение, завернутое в `either`
 + `mf` - функция, завернутая в `either`
 
-## Теория
 
-```haskell
-data  Either a b  =  Left a | Right b
+## Интерфейс
+
+Есть 2 функции: `left` и `right`. Они принимают в качестве агрумента значение
+и возвращают контейнер с этим значением. Они могут не принимать значение,
+тогда в контейнере должен быть `nil`. Доступ к значению в контейнере определяется стандартным для
+clojure способом с помощью конструкции `@`.
+
+```clojure
+(t/testing "with value"
+  (let [val :val
+        l   (left val)
+        r   (right val)]
+    (t/is (= val @l @r))))
+
+(t/testing "without value"
+  (let [l (left)
+        r (right)]
+    (t/is (= nil @l @r)))))
 ```
 
-`Either` - это множество из 2х элементов `Left` и `Right`. Причем и Left и Right - контейнеры,
-т.е. содержат в себе значения других типов. В терминологии haskell `Either` является:
+***
 
-+ полугруппой
-+ моноидом
-+ бифунктором
-+ функтрором
-+ аппликативным функтором
-+ монадой
+Есть предикаты: `(left? x)`, `(right? x)`, `(either? x)`. Причем `either?` определен для всех типов,
+а `left?` и `right?` только для наших контейнеров, т.е. `(left? 1)` бросит исключение.
 
-Слова страшные и ими можно ругаться. Но нам интерсно только то, что Either - бифунктор и монада.
+```clojure
+(t/testing "left?"
+  (t/is (left? (left)))
+  (t/is (not (left? (right)))))
 
-Это все нужно, чтобы терминология нашего кода соответствовала общепринятой.
+(t/testing "right?"
+  (t/is (right? (right)))
+  (t/is (not (right? (left)))))
 
-Я намерено опускаю многие детали, например не даю определения классов типов,
-т.к. тип(`Either a b`) у нас всего один. Иначе все стало бы сильно запутано.
+(t/testing "eihter?"
+  (t/is (either? (left)))
+  (t/is (either? (right)))
+  (t/is (not (either? nil))))
+```
 
-Далее нам понадобится понимать сигнатуры функций haskell:
+***
 
-+ `data  Either a b  =  Left a | Right b` - тип `Eihter` и два конструктора этого типа `Left` и `Right`
-+ `Either a b` - тип `a` для `Left`, тип `b` для `Right`
-+ `f :: a -> b -> c` - функция f 2х аргументов.
-  Например, принимает строку, число и возвращает булев тип.
-+ `g :: a -> a -> a` - функция 2х аргументов. Аргументы и возващаемое значение имеют одинаковый тип.
-+ `h :: (a -> b) -> c` - функция, принимающая другую функцию.
+Полезно иметь функцию, которая меняет обертку с Left на Right и наоборот:
 
-*Бифунктор* - это некий контейнер, спрособный изменять свое содержимое с помощью функций.
-Он определяет несколько функций. В случае `Either` они будут выглядеть так:
+```clojure
+(t/testing "invert"
+  (let [val :val
+        l   (invert (right val))
+        r   (invert (left val))]
+    (t/is (and (left? l) (= val @l)))
+    (t/is (and (right? r) (= val @r)))))
+```
 
-+ `bimap :: (a -> b) -> (c -> d) -> Either a c -> Either b d`.
-+ `first :: (a -> b) -> Either a c -> Either b c`
-+ `second :: (b -> c) -> Either a b -> Either a c`
+***
 
-Если в `bimap` передаем `Left`, то к его значению применится первая функция, если `Rigth` - вторая.
+Для изменения содержимого контенеров доступны функции:
++ `(bimap left-fn right-fn either)`
++ `(map-left left-fn either)`
++ `(map-right right-fn either)`
 
-Т.к`first` и `second` в clojure уже заняты, то назовем их `map-left` и `map-right` соответственно.
+Если в `bimap` передаем Left, то к его значению применится первая функция, если Rigth - вторая.
+`map-left` и `map-right` - частные случаи `bimap`.
 
-Вот тест для этих фукнкций:
 ```clojure
 (t/testing "bimap"
-    (let [l (->> 0 left (bimap inc identity))
-          r (->> 0 right (bimap identity inc))]
-      (t/is (and (left? l) (= 1 @l)))
-      (t/is (and (right? r) (= 1 @r)))))
+  (let [l (->> 0 left (bimap inc identity))
+        r (->> 0 right (bimap identity inc))]
+    (t/is (and (left? l) (= 1 @l)))
+    (t/is (and (right? r) (= 1 @r)))))
 
 (t/testing "map-left"
-    (let [l (->> 0 left (map-left inc))
-          r (->> 0 right (map-left inc))]
-      (t/is (and (left? l) (= 1 @l)))
-      (t/is (and (right? r) (= 0 @r)))))
+  (let [l (->> 0 left (map-left inc))
+        r (->> 0 right (map-left inc))]
+    (t/is (and (left? l) (= 1 @l)))
+    (t/is (and (right? r) (= 0 @r)))))
 
 (t/testing "map-right"
-    (let [l (->> 0 left (map-right inc))
-          r (->> 0 right (map-right inc))]
-      (t/is (and (left? l) (= 0 @l)))
-      (t/is (and (right? r) (= 1 @r)))))
+  (let [l (->> 0 left (map-right inc))
+        r (->> 0 right (map-right inc))]
+    (t/is (and (left? l) (= 0 @l)))
+    (t/is (and (right? r) (= 1 @r)))))
 ```
 
-*Монада* - упрощенно контейнер, позволяющий создавать последованиельные цепочки вычислений.
-Она определяет несколько функций. В случае `Either` они будут выглядеть так:
+Напомню, что макрос `->>` преобразует `(->> 0 left (map-right inc))` в `(map-right inc (left 0))`.
+[Подробнее](https://clojuredocs.org/clojure.core/-%3E%3E).
 
-+ `(>>=) :: Either e a -> (a -> Either e b) -> Either e b`. Иначе называется `bind`.
-+ `(>>) :: Either e a -> Either e b -> Either e b`
-+ `return :: a -> Either e a`
+***
 
-Надеюсь, вы уже поняли по типам, как работает `>>=`.
-Первый агрумент - `Either` значение, второй - функция применяемая к содержимому первого аргумента и
-возвращающая другой `Either`. Если первый агрумент `Left`, то он и будет возвращен.
+Макрос `let=` позволяет использовать вместе функции, возвращающие either и прерывать исполнение,
+если одна из них вернула Left.
 
-`>>=` как раз и позволяет создавать цепочки вроде `x >>= some-fn >>= another-fn`.
-Нужно учесть, что `some-fn` и `another-fn` должны возрващать монаду, в нашем случае - Either.
+```clojure
+(t/testing "right"
+  (let [ret (let= [x (right 1)
+                   y (right 2)]
+              (right (+ x y)))]
+    (t/is (right? ret))
+    (t/is (= 3 @ret))))
 
-`>>` частный случай `>>=`, когда нам не важен результат и используется для цепочек побочных эффектов.
+(t/testing "left"
+  (let [ret (let= [x (left 1)
+                   y (right 2)]
+              (right (+ x y)))]
+    (t/is (left? ret))
+    (t/is (= 1 @ret))))
+```
 
-Если за `left` принять `false`, а за `right` - `true`, то `>>` для `Either` будет подобен `and`,
+Привязки `x` и `y` - соответствуют значениям контейнеров:
+
+```clojure
+(let= [x (right 1)
+       y (right 2)]
+  (prn x) ;; => 1
+  (prn y) ;; => 2
+  (right (+ x y)))
+```
+
+Проверка прерывания исполнения:
+
+```clojure
+(t/testing "computation"
+
+  (t/testing "right"
+    (let [effect-spy   (promise)
+          side-effect! (fn [] (deliver effect-spy :ok))]
+      (let= [x (right 1)
+             y (right 2)]
+        (side-effect!)
+        (right (+ x y)))
+      (t/is (realized? effect-spy))))
+
+  (t/testing "left"
+    (let [y-spy        (promise)
+          effect-spy   (promise)
+          side-effect! (fn [] (deliver effect-spy :ok))]
+      (let= [x (left 1)
+             y (right (do (deliver y-spy :ok) 2))]
+        (side-effect!)
+        (right (+ x y)))
+      (t/is (not (realized? y-spy)))
+      (t/is (not (realized? effect-spy))))))
+```
+
+Для проверки прерывания исполнения исполюзуются "шпионы". Шпион, это промис,
+и мы можем проверить с помощью предиката `realized?` было ли доствлено ему какое-либо значение или нет.
+Таким образом можно понять, вызывался ли тот или иной кусок кода.
+
+Полезно иметь поддержку распаковки:
+
+```clojure
+(t/testing "destructuring"
+  (let [ret (let= [[x y] (right [1 2])]
+              (right (+ x y)))]
+    (t/is (= 3 @ret))))
+```
+
+Все выражения внутни блока привязок должны быть either:
+
+```clojure
+(t/testing "bindings"
+  (t/is (thrown? AssertionError
+                 (let= [x 1]
+                   (right x)))))
+```
+
+Последнее выражение в `let=` должно быть обернуто в either:
+
+```clojure
+(t/testing "result"
+  (t/is (thrown? AssertionError
+                (let= [x (right 1)]
+                  x))))
+```
+
+***
+
+Функция `>>=` позволяет строить цепочки следующего вида `(>>= either-value some-fn= another-fn=)`.
+Т.е. ее первый агрумент или Left или Right, а последующие - функции, принимающие обычные значения и
+возвращающие either. При этом если первый аргумент Left или любая функция вернула Left, то выполнение
+прерывается.
+
+```clojure
+(t/testing "right rights"
+  (let [mv   (right 0)
+        inc= (comp right inc)
+        str= (comp right str)
+        ret  (>>= mv inc= str=)]
+    (t/is (right? ret))
+    (t/is (= "1" @ret))))
+
+(t/testing "left right"
+  (let [mv   (left 0)
+        inc= (comp right inc)
+        ret  (>>= mv inc=)]
+    (t/is (left? ret))
+    (t/is (= 0 @ret))))
+
+(t/testing "right lefts"
+  (let [mv   (right 0)
+        fail= (fn [_] (left :error))
+        ret  (>>= mv fail=)]
+    (t/is (left? ret))
+    (t/is (= :error @ret)))))
+```
+
+***
+
+Макрос `>>` тоже строит цепочки, но в отличие от `>>=` цепочки значений, а не функций.
+Он полезен для последовательного вызова независимых функций. При этом, если в его аргументах
+оказался Left, то он прерывает цепочку.
+
+```clojure
+(>> (check-attrs= attrs)
+    (update-post= post attrs))
+```
+
+Если за Left принять `false`, а за Right - `true`, то `>>` будет подобен `and`,
 т.е. будет вычислять выражения до первого ложного:
 
 ```clojure
@@ -254,107 +401,26 @@ data  Either a b  =  Left a | Right b
  (do (prn 3) true)) ;; 3 не будет напечатано
 ```
 
-`return` оборачивает значение в монаду. Для Either она эквивалента фнукции `right`.
-
 ```clojure
-(t/testing ">>="
-  (t/testing "right rights"
-    (let [mv   (right 0)
-          inc= (comp right inc)
-          str= (comp right str)
-          ret  (>>= mv inc= str=)]
-      (t/is (right? ret))
-      (t/is (= "1" @ret))))
-  (t/testing "left right"
-    (let [mv   (left 0)
-          inc= (comp right inc)
-          ret  (>>= mv inc=)]
-      (t/is (left? ret))
-      (t/is (= 0 @ret))))
-  (t/testing "right lefts"
-    (let [mv   (right 0)
-          fail= (fn [_] (left :error))
-          ret  (>>= mv fail=)]
-      (t/is (left? ret))
-      (t/is (= :error @ret)))))
-
-(t/testing ">>"
-  (t/testing "rights"
-    (let [ret (>> (right 1)
-                  (right 2))]
-      (t/is (right? ret))
-      (t/is (= 2 @ret))))
-  (t/testing "lefts"
-    (let [spy (promise)
-          ret (>> (left 1)
-                  (right (do (deliver spy :ok)
-                             2)))]
-      (t/is (left? ret))
-      (t/is (= 1 @ret))
-      (t/is (not (realized? spy))))))
-
-(t/testing "return"
-  (let [ret (return :val)]
+(t/testing "rights"
+  (let [ret (>> (right 1)
+                (right 2))]
     (t/is (right? ret))
-    (t/is (= :val @ret))))
+    (t/is (= 2 @ret))))
+
+(t/testing "lefts"
+  (let [spy (promise)
+        ret (>> (left 1)
+                (right (do (deliver spy :ok)
+                           2)))]
+    (t/is (left? ret))
+    (t/is (= 1 @ret))
+    (t/is (not (realized? spy)))))
 ```
 
-В haskell есть так называемая `do` нотация, фактически синтаксический сахар:
+***
 
-```haskell
-do
-  x <- Left "error"
-  y <- Right 2
-  return(x + y)
--- #> Left "error"
-
-do
-  x <- Right 1
-  y <- Right 2
-  return(x + y)
--- #> Right 3
-```
-
-Фактически тоже самое можно записать так:
-
-```haskell
--- \x -> x - лямбда
-
-Left "error" >>= (\x -> Right 2 >>= (\y -> return (x + y)))
--- #> Left "error"
-
-Right 1 >>= (\x -> Right 2 >>= (\y -> return (x + y)))
--- #> Right 3
-```
-
-## Реализация
-
-Clojure не Haskell. Haskell имеет мощную систему типов. Также он ленивый, т.е. не вычисляет
-аргументы функции до ее вызова и не гарантирует порядок вычислений.
-Поэтому в некоторых местах мы будем использовать макросы вместо функций,
-по аналоги с макросом `or`, который вычисляет аргументы до первого истинного.
-
-Возможно вы заметили, что у нашего `let=` и `do` нотации есть много общего. Сравните:
-
-```clojure
-(let= [x (right 1)
-       y (right 2)]
-   (return (+ x y)))
-```
-
-```haskell
-do
-  x <- Right 1
-  y <- Right 2
-  return(x + y)
-```
-
-В haskell do разворачивается в множество вызовов `>>=` с ананимными функциями, как это показано выше.
-В отличие от haskell, для clojure, нет нужды обеспечивать порядок вычислений и реализовывать
-поддержку прочих монад. К тому же создание множества анонимных функций и множественные вызовы `>>=`
-существенно уменьшат производительность. Поэтому мы релизуем макрос `let=`, а с его помощью `<*>`, `>>=` и `>>`.
-
-Пару слов про `let=`. Оригинальный `let` неявно заворачивает свое тело в `do`:
+Оригинальный `let` неявно заворачивает свое тело в `do`:
 
 ```clojure
 (let [x 1]
@@ -367,14 +433,15 @@ do
     x))
 ```
 
-И это используется только для побочных эффектов, т.к. значением формы `(let ...)` будет последнее выражение этой формы. Т.е. значение `(prn x)` игнорируется.
+И это используется только для побочных эффектов, т.к. значением формы `(let ...)`
+будет последнее выражение этой формы. Т.е. результат `(prn x)` игнорируется.
 
-Я не стал менять семантику эту семантику для `let=`:
+Я не стал менять эту семантику для `let=`:
 
 ```clojure
 (let= [x (right 1)]
   (prn x) ;; => напечает 1
-  (return x))
+  (right x))
 ```
 
 Возможно вы заходите сделать так:
@@ -382,200 +449,18 @@ do
 ```clojure
 (let= [x (right 1)]
   (some-fn=)
-  (return x))
+  (right x))
 ```
 
-В этом случае результат `some-fn=` будет проигнорирован, даже если это будет `left`.
+В этом случае результат `some-fn=` будет проигнорирован, даже если это будет Left,
+и результатом будет `(right 1)`.
 
 Явно используйте `>>`:
 
 ```clojure
 (let= [x (right 1)]
   (>> (some-fn=)
-      (return x)))
-```
-
-## Этапы выполнения
-
-Я выделил 4 этапа:
-
-+ 1, 2 - обязательные
-+ 3 - желательный
-+ 4 - маленький, необязательный.
-
-На первом этапе нужно реализовать базовые функции по работе с `either`:
-
-```clojure
-(t/deftest step-1
-  (t/testing "constructors and deref"
-    (t/testing "with value"
-      (let [val :val
-            l   (left val)
-            r   (right val)]
-        (t/is (= :val @l @r))))
-    (t/testing "without value"
-      (let [l (left)
-            r (right)]
-        (t/is (= nil @l @r)))))
-  (t/testing "print"
-    (let [l (left)
-          r (right)]
-      (t/is (= "#<Left nil>" (pr-str l)))
-      (t/is (= "#<Right nil>" (pr-str r)))))
-  (t/testing "predicates"
-    (t/testing "left?"
-      (t/is (left? (left)))
-      (t/is (not (left? (right)))))
-    (t/testing "right?"
-      (t/is (right? (right)))
-      (t/is (not (right? (left)))))
-    (t/testing "eihter?"
-      (t/is (either? (left)))
-      (t/is (either? (right)))
-      (t/is (not (either? nil)))))
-  (t/testing "invert"
-    (let [l (invert (right :val))
-          r (invert (left :val))]
-      (t/is (and (left? l) (= :val @l)))
-      (t/is (and (right? r) (= :val @r)))))
-  (t/testing "bimap"
-    (let [l (->> 0 left (bimap inc identity))
-          r (->> 0 right (bimap identity inc))]
-      (t/is (and (left? l) (= 1 @l)))
-      (t/is (and (right? r) (= 1 @r)))))
-  (t/testing "map-left"
-    (let [l (->> 0 left (map-left inc))
-          r (->> 0 right (map-left inc))]
-      (t/is (and (left? l) (= 1 @l)))
-      (t/is (and (right? r) (= 0 @r)))))
-  (t/testing "map-right"
-    (let [l (->> 0 left (map-right inc))
-          r (->> 0 right (map-right inc))]
-      (t/is (and (left? l) (= 0 @l)))
-      (t/is (and (right? r) (= 1 @r))))))
-```
-
-На втором этапе нужно реализовать макрос `let=`:
-
-```clojure
-(t/deftest step-2
-  (t/testing "return"
-    (let [ret (return :val)]
-      (t/is (right? ret))
-      (t/is (= :val @ret))))
-  (t/testing "let="
-    (t/testing "right"
-      (let [ret (let= [x (right 1)
-                       y (right 2)]
-                  (return (+ x y)))]
-        (t/is (right? ret))
-        (t/is (= 3 @ret))))
-    (t/testing "left"
-      (let [ret (let= [x (left 1)
-                       y (right 2)]
-                  (return (+ x y)))]
-        (t/is (left? ret))
-        (t/is (= 1 @ret))))
-    (t/testing "computation"
-      (t/testing "right"
-        (let [effect-spy   (promise)
-              side-effect! (fn [] (deliver effect-spy :ok))]
-          (let= [x (right 1)
-                 y (right 2)]
-            (side-effect!)
-            (return (+ x y)))
-          (t/is (realized? effect-spy))))
-      (t/testing "left"
-        (let [y-spy        (promise)
-              effect-spy   (promise)
-              side-effect! (fn [] (deliver effect-spy :ok))]
-          (let= [x (left 1)
-                 y (right (do (deliver y-spy :ok) 2))]
-            (side-effect!)
-            (return (+ x y)))
-          (t/is (not (realized? y-spy)))
-          (t/is (not (realized? effect-spy))))))
-    (t/testing "destructuring"
-      (let [ret (let= [[x y] (right [1 2])]
-                  (return (+ x y)))]
-        (t/is (= 3 @ret))))
-    (t/testing "asserts"
-      (t/testing "bindings"
-        (t/is (thrown? AssertionError
-                       (let= [x 1]
-                         (return x)))))
-      (t/testing "result"
-        (t/is (thrown? AssertionError
-                       (let= [x (right 1)]
-                         x)))))))
-```
-
-На третьем этапе реализовать `<*>`, `>>=`, `>>`:
-```clojure
-(t/deftest step-3
-  (t/testing ">>="
-    (t/testing "right rights"
-      (let [mv   (right 0)
-            inc= (comp right inc)
-            str= (comp right str)
-            ret  (>>= mv inc= str=)]
-        (t/is (right? ret))
-        (t/is (= "1" @ret))))
-    (t/testing "left right"
-      (let [mv   (left 0)
-            inc= (comp right inc)
-            ret  (>>= mv inc=)]
-        (t/is (left? ret))
-        (t/is (= 0 @ret))))
-    (t/testing "right lefts"
-      (let [mv   (right 0)
-            fail= (fn [_] (left :error))
-            ret  (>>= mv fail=)]
-        (t/is (left? ret))
-        (t/is (= :error @ret)))))
-  (t/testing ">>"
-    (t/testing "rights"
-      (let [ret (>> (right 1)
-                    (right 2))]
-        (t/is (right? ret))
-        (t/is (= 2 @ret))))
-    (t/testing "lefts"
-      (let [spy (promise)
-            ret (>> (left 1)
-                    (right (do (deliver spy :ok)
-                               2)))]
-        (t/is (left? ret))
-        (t/is (= 1 @ret))
-        (t/is (not (realized? spy)))))))
-```
-
-На четвертом бонустом этапе нужно реализовать аналог стандартного макроса `->`:
-```clojure
-(t/deftest step-4
-  (t/testing "->="
-    (t/testing "single arg"
-      (let [ret (->= (right))]
-        (t/is (right? ret))))
-    (t/testing "right"
-      (let [inc= (comp right inc)
-            str= (comp right str)
-            ret  (->= (right 0)
-                      inc=
-                      (str= 2 3))]
-        (t/is (right? ret))
-        (t/is (= "123" @ret))))
-    (t/testing "right left"
-      (let [fail= (fn [_] (left :error))
-            ret   (->= (right 0)
-                       fail=)]
-        (t/is (left? ret))
-        (t/is (= :error @ret))))
-    (t/testing "left right"
-      (let [inc= (comp right inc)
-            ret   (->= (left :error)
-                       inc=)]
-        (t/is (left? ret))
-        (t/is (= :error @ret))))))
+      (right x)))
 ```
 
 ## Задание
@@ -584,45 +469,52 @@ do
 Сервис repl.it позволяет писать и выполнять код прямо в браузере.
 Для этого вам нужно зарегистрироваться и форкнуть мой проект.
 
-При выполнении внимательно смотрите на определения.
-Внимательно смотрите на тесты.
-Внимательно прочитайте шпаргалку.
+Задание разбито на 3 этапа:
 
-Если что-то можно реализовать с помощью функции, то нужно написать функцию, а не макрос.
+1. реализация базового функционала
+2. реализация `let=`
+3. реализация `>>=` и `>>`
 
+При выполнении внимательно смотрите на тесты.
+Прочитайте шпаргалку.
 В следующем параграфе будет доступно мое решение для самостоятельной проверки.
 
 ## Шпаргалка
-
-Все, что здесь перечислено точно вам пригодится.
-
-***
 
 https://clojure.org/api/cheatsheet - ваш главный справочный материал.
 Ищите здесь информацию по любой стандартной функции/макросу.
 
 ***
 
-Наверняка вам потребуется полимофизм. Для нашего случая Записи избыточны,
-поэтому используйте Типы. Типы - это просто java классы,
+Вам потребуются Типы. Типы - это просто java классы,
 они не реализуют никаких дополнительных протоколов и интерфейсов.
 
 ```clojure
-(defprotocol P
-  (m [this]))
+(deftype T [val])
+
+(->T 1) ;; конструктор.
+```
+
+`->` - просто часть имени автоматически сгенерированной функции-конструктора.
+
+***
+
+Вместо ветвления (if, case) используйте полиморфизм.
+
+Типы также как и Записи поддерживают протоколы:
+
+```clojure
+(defprotocol Proto
+  (method [this]))
 
 (deftype T []
-  P
-  (m [this] :ok))
+  Proto
+  (method [this] :ok))
 ```
 
 ***
 
-Используйте полиморфизм вместо ветвления(if, case).
-
-***
-
-Чтобы можно было использовать `@` нотацию, нужно реализовать интерфейс:
+Чтобы можно было использовать `@` нотацию, нужно реализовать стандартный интерфейс:
 
 ```clojure
 (deftype T [val]
@@ -667,6 +559,18 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
 
 ***
 
+Используйте паттерн Null-object. В частности функцию [identity](https://clojuredocs.org/clojure.core/identity).
+
+Например:
+
+```clojure
+(map identity some-collection)
+```
+
+Коллекция не будет изменена.
+
+***
+
 Функции могут иметь различные определния в зависимости от количества аргуметов:
 
 ```clojure
@@ -677,6 +581,16 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
 
 Если вы хотите сделать функцию с произвольным количеством аргуметов, то
 переменный вариант должен принимать столько же или больше аргументов:
+
+```clojure
+(defn foo
+  ([x y] :do-somesing)
+  ([x y & ys] :do-another))
+```
+
+***
+
+Добавляйте в функцию поддержку переменного количества агруметов с помощью `cons` и `reduce`:
 
 ```clojure
 (defn foo
@@ -700,7 +614,7 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
 
 ***
 
-Макросы тоже бывают рекурсивными.
+Макросы могут быть рекурсивными.
 
 ***
 
@@ -709,7 +623,7 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
 ```clojure
 (-> '(let= [x (left 1)
             y (right 2)]
-       (return (+ x y)))
+       (right (+ x y)))
     macroexpand-1
     clojure.pprint/pprint)
 ```
@@ -746,18 +660,10 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
 
 ***
 
-Бывают ситуации, когда такой способ не работает.
-Например, вы вручную собираете форму:
+Используйте утверждения:
 
 ```clojure
-(defmacro foo [y]
-  (let [val (gensym "val")]
-    `(let [~val ~y]
-       ~(list `+ val 2))))
-
-(foo 1)
-
-;; (let [val15558 1] (+ val15558 2))
+(assert (either? x))
 ```
 
 ***
@@ -781,14 +687,73 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
   (cons 0 v)) ;; => (0 1 2 3)
 ```
 
+## Для любознательных
+
+Для тех, кто знает haskell, фактически мы реализуем вместо `Either` нечто вроде монадного трансформера
+`EitherT a (IO b)`, т.к. функции в Clojure могут иметь побочные эффекты.
+
 ***
 
-Используйте:
+`bimap`, `>>=`, `>>` взяты из Haskell. Последние 2 адаптированы для использования с переменным
+количеством агрументов.
 
-+ [->](https://clojuredocs.org/clojure.core/-%3E)
-+ [->>](https://clojuredocs.org/clojure.core/-%3E%3E)
-+ [comp](https://clojuredocs.org/clojure.core/comp)
-+ [identity](https://clojuredocs.org/clojure.core/identity)
-+ [assert](https://clojuredocs.org/clojure.spec.alpha/assert)
-+ [repeat](https://clojuredocs.org/clojure.core/repeat)
-+ [interleave](https://clojuredocs.org/clojure.core/interleave)
+***
+
+Clojure не Haskell. Haskell имеет мощную систему типов. Также он ленивый, т.е. не вычисляет
+аргументы функции до ее вызова и не гарантирует порядок вычислений.
+Поэтому `>>` - макрос, а не функция, чтобы отложить вычисления.
+Он подобен макросу `or`, который вычисляет аргументы до первого истинного.
+
+***
+
+В Haskell есть так называемая `do` нотация, фактически синтаксический сахар:
+
+```haskell
+do
+  x <- Left "error"
+  y <- Right 2
+  right(x + y)
+-- #> Left "error"
+
+do
+  x <- Right 1
+  y <- Right 2
+  right(x + y)
+-- #> Right 3
+```
+
+Это эквивалентно:
+
+```haskell
+-- \x -> x - лямбда
+
+Left "error" >>= (\x -> Right 2 >>= (\y -> right (x + y)))
+-- #> Left "error"
+
+Right 1 >>= (\x -> Right 2 >>= (\y -> right (x + y)))
+-- #> Right 3
+```
+
+***
+
+Возможно вы заметили, что у нашего `let=` и `do` нотации есть много общего. Сравните:
+
+```clojure
+(let= [x (right 1)
+       y (right 2)]
+   (right (+ x y)))
+```
+
+```haskell
+do
+  x <- Right 1
+  y <- Right 2
+  right(x + y)
+```
+
+***
+
+В отличие от Haskell, для Clojure, нет нужды обеспечивать порядок вычислений и реализовывать
+поддержку прочих монад. К тому же создание множества анонимных функций и множественные вызовы `>>=`
+существенно уменьшат производительность. Поэтому `let=` реализован как макрос,
+а с его помощью `>>=` и `>>`.
