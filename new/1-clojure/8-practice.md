@@ -499,8 +499,6 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
 
 ***
 
-Вместо ветвления (if, case) используйте полиморфизм.
-
 Типы также как и Записи поддерживают протоколы:
 
 ```clojure
@@ -510,6 +508,37 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
 (deftype T []
   Proto
   (method [this] :ok))
+```
+
+***
+
+Вместо ветвления (if, case) используйте полиморфизм.
+
+
+```clojure
+(defrecord Either [val kind])
+
+(defn left? [either]
+  (= (:kind either) :left))
+
+(defn right? [either]
+  (= (:kind either) :right))
+```
+
+```clojure
+(defprotocol Either
+  (left? [this])
+  (right? [this]))
+
+(deftype Left [val]
+  Either
+  (left? [_] true)
+  (right? [_] false))
+
+(deftype Right [val]
+  Either
+  (left? [_] false)
+  (right? [_] true))
 ```
 
 ***
