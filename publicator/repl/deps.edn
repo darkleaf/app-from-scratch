@@ -1,0 +1,9 @@
+{:deps
+ {com.bhauman/rebel-readline {:mvn/version "0.1.1"}
+  org.clojure/tools.namespace {:mvn/version "0.3.0-alpha4"}}
+
+ :aliases
+ {:cider {:extra-deps {publicator/cider {:local/root "../cider"}}
+          :main-opts ["-m" "publicator.cider"]}}
+
+ :mvn/local-repo "../.m2"}
