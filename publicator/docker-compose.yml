@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    working_dir: "${PWD}"
+    command: "true"
+    ports:
+      - "4444:4444" # nrepl
+    volumes:
+      - ".:${PWD}:cached"
