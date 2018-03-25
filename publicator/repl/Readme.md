@@ -23,6 +23,19 @@
 }
 ```
 
+
+Если при перезагрузке произошла ошибка, то она доступна как `*e`:
+
+```
+:repl/reload-all
+:reloading (some.namespace)
+:error-while-loading some.namespace
+user=> *e
+#error {
+...
+}
+```
+
 Добавляет поддержку запуска тестов с помощью команд:
 
 + `:repl/run-tests`
