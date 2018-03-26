@@ -1,0 +1,11 @@
+{:deps {publicator/domain {:local/root "../domain"}
+        darkleaf/either   {:local/root "../either"}}
+
+ :aliases {:dev   {:extra-paths ["test"]
+                   :extra-deps  {orchestra {:mvn/version "2017.11.12-1"}}}
+           :cider {:extra-deps {darkleaf/cider {:local/root "../cider"}}
+                   :main-opts  ["-m" "darkleaf.cider"]}
+           :repl  {:extra-deps {darkleaf/repl {:local/root "../repl"}}
+                   :main-opts  ["-m" "darkleaf.repl"]}}
+
+ :mvn/local-repo "../.m2"}
