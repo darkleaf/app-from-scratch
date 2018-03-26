@@ -12,13 +12,16 @@
 (s/def ::password-digest ::password-hasher/encrypted)
 (s/def ::posts-ids (s/coll-of ::id-generator/id :kind vector? :distinct true))
 
-(s/def ::user (s/keys :req-un [::id ::login ::full-name ::password-digest ::posts-ids]))
+(s/def ::user-attrs (s/keys :req-un [::id ::login ::full-name ::password-digest ::posts-ids]))
 
 (defrecord User [id login full-name password-digest posts-ids]
   aggregate/Aggregate
   (id [_] id)
-  (valid? [this] (s/valid? ::user this)))
+  (valid? [this] (s/valid? ::user-attrs this)))
 
+(defn user? [x] (instance? User x))
+
+(s/def ::user (s/and user? ::user-attrs))
 
 (s/fdef build
         :args (s/cat :params (s/keys :req-un [::login ::full-name ::password]
@@ -31,9 +34,6 @@
         password-digest (password-hasher/derive password)]
     (->User id login full-name password-digest posts-ids)))
 ;; todo: created-at
-
-
-(defn user? [x] (instance? User x))
 
 
 (defn authenticated? [user password]

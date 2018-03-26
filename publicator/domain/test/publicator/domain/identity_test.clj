@@ -9,12 +9,17 @@
   (id [_] id)
   (valid? [_] (some? property)))
 
+;; соглашение?
+;; имя идентичности должно начинаться на i
+
 (t/deftest identity-test
-  (let [agg- (sut/build (->Aggregate 1 true))]
+  (let [iagg (sut/build (->Aggregate 1 true))]
+    (t/testing "predicate"
+      (t/is (sut/identity? iagg)))
     (t/testing "validator"
       (t/is (thrown? RuntimeException
-                     (dosync (alter agg- assoc :id 2))))
+                     (dosync (alter iagg assoc :id 2))))
       (t/is (thrown? RuntimeException
-                     (dosync (ref-set agg- nil))))
+                     (dosync (ref-set iagg nil))))
       (t/is (thrown? RuntimeException
-                     (dosync (alter agg- assoc :property nil)))))))
+                     (dosync (alter iagg assoc :property nil)))))))
