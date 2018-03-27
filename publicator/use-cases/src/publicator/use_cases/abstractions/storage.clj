@@ -15,14 +15,14 @@
 (s/fdef get-many
         :args (s/cat :tx any?
                      :ids (s/coll-of ::id-generator/id :distinct true))
-        :ret (s/map-of ::id-generator/id identity/identity?)
+        :ret (s/map-of ::id-generator/id ::identity/identity)
         :fn (fn idempotent? [{:keys [args ret]}]
               (= ret (apply get-many args))))
 
 (s/fdef create
         :args (s/cat :tx any?
-                     :state aggregate/aggregate?)
-        :ret identity/identity?)
+                     :state ::aggregate/aggregate)
+        :ret ::identity/identity)
 
 (declare ^:dynamic *storage*)
 
@@ -37,7 +37,7 @@
 (s/fdef get-one
         :args (s/cat :tx any?
                      :id ::id-generator/id)
-        :ret identity/identity?)
+        :ret ::identity/identity)
 
 (defn get-one [tx id]
   (let [res (get-many tx [id])]
@@ -46,7 +46,7 @@
 
 (s/fdef tx-get-one
         :args (s/cat :id ::id-generator/id)
-        :ret (s/nilable identity/identity?))
+        :ret (s/nilable ::identity/identity))
 
 (defn tx-get-one [id]
   (with-tx t
@@ -56,7 +56,7 @@
 
 (s/fdef tx-get-many
         :args (s/cat :ids (s/coll-of ::id-generator/id :distinct true))
-        :ret (s/map-of ::id-generator/id aggregate/aggregate?))
+        :ret (s/map-of ::id-generator/id ::aggregate/aggregate))
 
 (defn tx-get-many [ids]
   (with-tx t
@@ -68,8 +68,8 @@
 
 
 (s/fdef tx-create
-        :args (s/cat :state aggregate/aggregate?)
-        :ret (s/cat :state aggregate/aggregate?)
+        :args (s/cat :state ::aggregate/aggregate)
+        :ret (s/cat :state ::aggregate/aggregate)
         :fn #(= (-> % :args :state)
                 (-> % :ret)))
 
@@ -82,7 +82,7 @@
         :args (s/cat :id ::id-generator/id
                      :f fn?
                      :args (s/* any?))
-        :ret aggregate/aggregate?)
+        :ret ::aggregate/aggregate)
 
 (defn tx-alter [id f & args]
   (with-tx t

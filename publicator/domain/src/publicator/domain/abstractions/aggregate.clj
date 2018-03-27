@@ -1,8 +1,9 @@
-(ns publicator.domain.abstractions.aggregate)
+(ns publicator.domain.abstractions.aggregate
+  (:require
+   [clojure.spec.alpha :as s]))
 
 (defprotocol Aggregate
   (id [this])
   (valid? [this]))
 
-(defn aggregate? [x]
-  (satisfies? Aggregate x))
+(s/def ::aggregate #(satisfies? Aggregate %))

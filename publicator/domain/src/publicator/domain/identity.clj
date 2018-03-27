@@ -5,12 +5,7 @@
   (:import
    [clojure.lang Ref]))
 
-(defn identity? [x]
-  (and (instance? Ref x)
-       (aggregate/aggregate? @x)
-       (-> x get-validator some?)))
-
-(s/def ::identity identity?)
+(s/def ::identity #(instance? Ref %))
 
 (defn build [initial]
   (let [klass (class initial)
