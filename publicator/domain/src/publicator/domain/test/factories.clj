@@ -11,21 +11,18 @@
 (defn build-user
   ([] (build-user {}))
   ([params]
-   (let [params (-> `user/build
-                    s/spec
-                    :args
-                    gen
-                    vec
-                    (update 0 merge params))]
-     (apply user/build params))))
+   (-> (s/keys :req-un [::user/login
+                        ::user/full-name
+                        ::user/password])
+       gen
+       (merge params)
+       user/build)))
 
 (defn build-post
   ([] (build-post {}))
   ([params]
-   (let [params (-> `post/build
-                    s/spec
-                    :args
-                    gen
-                    vec
-                    (update 0 merge params))]
-     (apply post/build params))))
+   (-> (s/keys :req-un [::post/title
+                        ::post/content])
+       gen
+       (merge params)
+       post/build)))
