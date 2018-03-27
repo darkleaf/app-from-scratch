@@ -5,11 +5,31 @@
   (:import
    [clojure.lang Ref]))
 
-(s/def ::identity #(instance? Ref %))
+(defn- build-validator [initial]
+  (fn [new]
+    (if (not= (class initial)
+              (class new))
+      (throw (ex-info "Aggregate class was changed."
+                      {::type    :class-was-changed
+                       ::initial initial
+                       ::new     new})))
+    (if (not= (aggregate/id initial)
+              (aggregate/id new))
+      (throw (ex-info "Aggregate id was changed."
+                      {::type    :id-was-changed
+                       ::initial initial
+                       ::new     new})))
+    (if-let [ed (s/explain-data (aggregate/spec new) new)]
+      (throw (ex-info (str "Aggregate was invalid. "
+                           (with-out-str (s/explain-out ed)))
+                      {::type         :aggregate-was-invalid
+                       ::explain-data ed})))
+    true))
+
+(s/def ::identity (s/and #(instance? Ref %)
+                         #(-> % meta ::identity true?)))
 
 (defn build [initial]
-  (let [klass (class initial)
-        id    (aggregate/id initial)]
-    (ref initial :validator #(and (= klass (class %))
-                                  (= id (aggregate/id %))
-                                  (aggregate/valid? %)))))
+  (ref initial
+       :meta {::identity true}
+       :validator (build-validator initial)))

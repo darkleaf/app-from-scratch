@@ -4,6 +4,6 @@
 
 (defprotocol Aggregate
   (id [this])
-  (valid? [this]))
+  (spec [this]))
 
 (s/def ::aggregate #(satisfies? Aggregate %))

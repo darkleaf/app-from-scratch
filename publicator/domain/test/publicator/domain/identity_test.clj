@@ -2,20 +2,22 @@
   (:require
    [publicator.domain.identity :as sut]
    [publicator.domain.abstractions.aggregate :as aggregate]
+   [clojure.spec.alpha :as s]
    [clojure.test :as t]))
 
 (defrecord Aggregate [id property]
   aggregate/Aggregate
   (id [_] id)
-  (valid? [_] (some? property)))
+  (spec [_] (fn [_] (some? property))))
 
 ;; соглашение?
 ;; имя идентичности должно начинаться на i
 
 (t/deftest identity-test
   (let [iagg (sut/build (->Aggregate 1 true))]
-    (t/testing "predicate"
-      (t/is (sut/identity? iagg)))
+    (t/testing "spec"
+      (t/is (s/valid? ::sut/identity iagg))
+      (t/is (not (s/valid? ::sut/identity (ref nil)))))
     (t/testing "validator"
       (t/is (thrown? RuntimeException
                      (dosync (alter iagg assoc :id 2))))

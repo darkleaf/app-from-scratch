@@ -5,6 +5,7 @@
    [publicator.domain.test-fixtures :as test-fixtures]
    [publicator.domain.test.factories :as factories]
    [publicator.domain.abstractions.aggregate :as aggregate]
+   [clojure.spec.alpha :as s]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fixtures/fakes)
@@ -27,7 +28,7 @@
     (let [user (factories/build-user)]
       (t/is (= (:id user)
                (aggregate/id user)))))
-  (t/testing "valid?"
-    (let [user (factories/build-user)]
-      (t/is (aggregate/valid? user))
-      (t/is (not (aggregate/valid? (assoc user :id nil)))))))
+  (t/testing "spec"
+    (let [user (factories/build-user)
+          spec (aggregate/spec user)]
+      (t/is (s/valid? spec user)))))

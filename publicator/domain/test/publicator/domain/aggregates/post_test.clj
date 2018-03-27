@@ -5,6 +5,7 @@
    [publicator.domain.test-fixtures :as test-fixtures]
    [publicator.domain.test.factories :as factories]
    [publicator.domain.abstractions.aggregate :as aggregate]
+   [clojure.spec.alpha :as s]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fixtures/fakes)
@@ -21,7 +22,7 @@
     (let [post (factories/build-post)]
       (t/is (= (:id post)
                (aggregate/id post)))))
-  (t/testing "valid?"
-    (let [post (factories/build-post)]
-      (t/is (aggregate/valid? post))
-      (t/is (not (aggregate/valid? (assoc post :id nil)))))))
+  (t/testing "spec"
+    (let [post (factories/build-post)
+          spec (aggregate/spec post)]
+      (t/is (s/valid? spec post)))))

@@ -17,7 +17,7 @@
 (defrecord User [id login full-name password-digest posts-ids]
   aggregate/Aggregate
   (id [_] id)
-  (valid? [this] (s/valid? ::user-attrs this)))
+  (spec [_] ::user-attrs))
 
 (defn user? [x] (instance? User x))
 

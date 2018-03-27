@@ -13,7 +13,7 @@
 (defrecord Post [id title content]
   aggregate/Aggregate
   (id [_] id)
-  (valid? [this] (s/valid? ::post-attrs this)))
+  (spec [_] ::post-attrs))
 
 (defn post? [x] (instance? Post x))
 
