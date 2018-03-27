@@ -46,7 +46,7 @@
 
 (s/fdef tx-get-one
         :args (s/cat :id ::id-generator/id)
-        :ret (s/nilable ::identity/identity))
+        :ret (s/nilable ::aggregate/aggregate))
 
 (defn tx-get-one [id]
   (with-tx t
@@ -69,7 +69,7 @@
 
 (s/fdef tx-create
         :args (s/cat :state ::aggregate/aggregate)
-        :ret (s/cat :state ::aggregate/aggregate)
+        :ret ::aggregate/aggregate
         :fn #(= (-> % :args :state)
                 (-> % :ret)))
 

@@ -10,7 +10,7 @@
 
 (s/fdef get-by-login
         :args (s/cat :login ::user/login)
-        :ret ::user/user)
+        :ret (s/nilable ::user/user))
 
 (defn get-by-login [login]
   (-get-by-login *get-by-login* login))
