@@ -4,9 +4,10 @@
    [publicator.use-cases.services.user-session :as user-session]
    [publicator.domain.aggregates.user :as user]
    [darkleaf.either :as e]
-   [clojure.spec.alpha :as s]))
+   [clojure.spec.alpha :as s]
+   [publicator.use-cases.utils.spec :as utils.spec]))
 
-(s/def ::params (s/keys :req-un [::user/login ::user/password]))
+(s/def ::params (utils.spec/only-keys :req-un [::user/login ::user/password]))
 
 (defn- check-logged-out= []
   (if (user-session/logged-out?)
