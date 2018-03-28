@@ -1,14 +1,9 @@
 (ns publicator.use-cases.services.user-session
   (:require
-   [publicator.use-cases.abstractions.session :as session]
-   [publicator.use-cases.abstractions.storage :as storage]))
+   [publicator.use-cases.abstractions.session :as session]))
 
 (defn user-id []
   (session/get ::id))
-
-(defn user []
-  (when-let [id (user-id)]
-    (storage/tx-get-one id)))
 
 (defn logged-in? []
   (boolean (user-id)))

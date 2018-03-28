@@ -18,8 +18,8 @@
         user   (:user resp)]
     (t/testing "success"
       (t/is (= (:type resp) ::sut/processed)))
-    (t/testing "sign in"
-      (t/is (= user (user-session/user))))
+    (t/testing "logged in"
+      (t/is (user-session/logged-in?)))
     (t/testing "persisted"
       (t/is (some? (storage/tx-get-one (:id user)))))))
 
