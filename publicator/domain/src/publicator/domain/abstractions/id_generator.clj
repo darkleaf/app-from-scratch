@@ -7,7 +7,7 @@
 
 (declare ^:dynamic *id-generator*)
 
-(s/def ::id some?)
+(s/def ::id int?)
 
 (s/fdef generate
         :ret ::id)
