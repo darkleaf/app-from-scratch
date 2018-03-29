@@ -1,4 +1,5 @@
-{:deps {org.clojure/test.check {:mvn/version "0.9.0"}}
+{:deps {org.clojure/test.check {:mvn/version "0.9.0"}
+        darkleaf/either        {:local/root "../either"}}
 
  :aliases {:dev   {:extra-paths ["test"]
                    :extra-deps  {orchestra {:mvn/version "2017.11.12-1"}}}
