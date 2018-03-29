@@ -9,7 +9,6 @@
     (->> db
          (deref)
          (vals)
-         (map deref)
          (filter user/user?)
          (filter #(= login (:login %)))
          (first))))
