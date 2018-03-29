@@ -10,3 +10,6 @@
                                     opt
                                     (map (comp keyword name) opt-un)))
                       any?)))
+
+(defn in? [coll elm]
+  (boolean (some #(= elm %) coll)))

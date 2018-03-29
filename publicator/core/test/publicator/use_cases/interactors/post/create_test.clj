@@ -3,6 +3,7 @@
    [publicator.use-cases.interactors.post.create :as sut]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.use-cases.services.user-session :as user-session]
+   [publicator.domain.services.user-posts :as user-posts]
    [publicator.use-cases.test.fixtures :as fixtures]
    [publicator.use-cases.test-fixtures :as test-fixtures]
    [publicator.use-cases.test.factories :as factories]
@@ -17,16 +18,13 @@
         params  (factories/gen ::sut/params)
         resp    (sut/process params)
         user    (storage/tx-get-one (:id user))
-        post    (:post resp)
-        post-id (:id post)]
+        post    (:post resp)]
     (t/testing "success"
       (t/is (= (:type resp) ::sut/processed))
       (t/is (some? post)))
     (t/testing "update user"
-      (t/is (= [post-id]
-               (:posts-ids user))))
-    (t/testing "persisted"
-      (t/is (some? (storage/tx-get-one post-id))))))
+      (t/is (user-posts/author? user post)))))
+
 
 (t/deftest logged-out
   (let [params (factories/gen ::sut/params)
