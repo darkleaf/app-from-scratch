@@ -1,4 +1,4 @@
-(ns publicator.use-cases.utils.spec
+(ns publicator.ext
   (:require
    [clojure.spec.alpha :as s]))
 
