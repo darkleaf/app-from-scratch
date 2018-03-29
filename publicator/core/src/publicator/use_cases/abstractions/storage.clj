@@ -3,14 +3,15 @@
    [clojure.spec.alpha :as s]
    [publicator.domain.abstractions.id-generator :as id-generator]
    [publicator.domain.abstractions.aggregate :as aggregate]
-   [publicator.domain.identity :as identity]))
+   [publicator.domain.identity :as identity]
+   [publicator.ext :as ext]))
 
 (defprotocol Storage
   (wrap-tx [this body]))
 
 (defprotocol Transaction
-  (get-many [this ids])
-  (create [this state]))
+  (get-many [t ids])
+  (create [t state]))
 
 (s/fdef get-many
         :args (s/cat :tx any?
@@ -32,15 +33,15 @@
   [tx-name & body-forms-free-of-side-effects]
   `(wrap-tx *storage*
             (fn [~tx-name]
-              (dosync ~@body-forms-free-of-side-effects))))
+              ~@body-forms-free-of-side-effects)))
 
 (s/fdef get-one
         :args (s/cat :tx any?
                      :id ::id-generator/id)
-        :ret ::identity/identity)
+        :ret (s/nilable ::identity/identity))
 
-(defn get-one [tx id]
-  (let [res (get-many tx [id])]
+(defn get-one [t id]
+  (let [res (get-many t [id])]
     (get res id)))
 
 
@@ -62,10 +63,7 @@
   (with-tx t
     (->> ids
          (get-many t)
-         (reduce-kv
-          (fn [acc k v] (assoc acc k @v))
-          {}))))
-
+         (ext/map-vals deref))))
 
 (s/fdef tx-create
         :args (s/cat :state ::aggregate/aggregate)
@@ -87,4 +85,5 @@
 (defn tx-alter [id f & args]
   (with-tx t
     (when-let [x (get-one t id)]
-      (apply alter x f args))))
+      (dosync
+       (apply alter x f args)))))
