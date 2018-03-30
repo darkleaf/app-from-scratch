@@ -8,16 +8,14 @@
 (s/def ::title (s/and string? #(re-matches #".{1,255}" %)))
 (s/def ::content string?)
 
-(s/def ::post-attrs (s/keys :req-un [::id ::title ::content]))
+(s/def ::post (s/keys :req-un [::id ::title ::content]))
 
 (defrecord Post [id title content]
   aggregate/Aggregate
   (id [_] id)
-  (spec [_] ::post-attrs))
+  (spec [_] ::post))
 
 (defn post? [x] (instance? Post x))
-
-(s/def ::post (s/and post? ::post-attrs))
 
 (s/fdef build
         :args (s/cat :params (s/keys :req-un [::title ::content]))

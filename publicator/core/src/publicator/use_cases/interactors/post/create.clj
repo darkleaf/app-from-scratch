@@ -25,8 +25,7 @@
    (storage/create t (post/build params))))
 
 (defn- set-authorship [t ipost]
-  (let [user-id (user-session/user-id)
-        iuser   (storage/get-one t user-id)]
+  (let [iuser (user-session/iuser t)]
     (dosync (alter iuser user-posts/add-post @ipost))))
 
 (defn initial-params []
