@@ -1,4 +1,6 @@
-(ns darkleaf.either)
+(ns darkleaf.either
+  (:require
+   [clojure.string :as str]))
 
 (defprotocol Either
   (left? [this])
@@ -6,34 +8,59 @@
   (invert [this])
   (-bimap [this leftf rightf]))
 
+(alter-meta! #'Either assoc :private true)
+(alter-meta! #'-bimap assoc :private true)
+
 (declare left)
 (declare right)
 
-(deftype Left [val]
-  clojure.lang.IDeref
-  (deref [_] val)
-  Either
+(defmacro ^:private defeither [type-name val-name & body]
+  (let [generated-constructor (symbol (str "->" type-name))
+        constructor           (symbol (str/lower-case type-name))]
+    `(do
+       (deftype ~type-name [~val-name]
+         Object
+         (equals [this# other#]
+           (and
+            (= (class this#) (class other#))
+            (= ~val-name (. other# ~val-name))))
+         (hashCode [_] (hash ~val-name))
+
+         clojure.lang.IHashEq
+         (hasheq [_] (hash ~val-name))
+
+         clojure.lang.IDeref
+         (deref [_] ~val-name)
+
+         Either
+         ~@body)
+
+       (alter-meta! (var ~generated-constructor)
+                    assoc :private true)
+
+       (defn ~constructor
+         ([] (~constructor nil))
+         ([x#] (~generated-constructor x#)))
+
+       (defmethod print-method ~type-name [v# ^java.io.Writer w#]
+         (doto w#
+           (.write "#<")
+           (.write ~(str type-name))
+           (.write " ")
+           (.write (pr-str @v#))
+           (.write ">"))))))
+
+(defeither Left value
   (left? [_] true)
   (right? [_] false)
-  (invert [_] (right val))
-  (-bimap [_ leftf _] (-> val leftf left)))
+  (invert [_] (right value))
+  (-bimap [_ leftf _] (-> value leftf left)))
 
-(deftype Right [val]
-  clojure.lang.IDeref
-  (deref [_] val)
-  Either
+(defeither Right value
   (left? [_] false)
   (right? [_] true)
-  (invert [_] (left val))
-  (-bimap [_ _ rightf] (-> val rightf right)))
-
-(defn left
-  ([] (left nil))
-  ([x] (->Left x)))
-
-(defn right
-  ([] (right nil))
-  ([x] (->Right x)))
+  (invert [_] (left value))
+  (-bimap [_ _ rightf] (-> value rightf right)))
 
 ;; потому, что это по определению может быть только 2 обрертки
 (defn either? [x]
@@ -51,30 +78,20 @@
 (defn map-right [f mv]
   (bimap identity f mv))
 
-(defmethod print-method Left [v ^java.io.Writer w]
-  (doto w
-    (.write "#<Left ")
-    (.write (pr-str @v))
-    (.write ">")))
-
-(defmethod print-method Right [v ^java.io.Writer w]
-  (doto w
-    (.write "#<Right ")
-    (.write (pr-str @v))
-    (.write ">")))
-
 (defmacro let= [bindings & body]
   (assert (-> bindings count even?))
   (if (empty? bindings)
     `(let [res# (do ~@body)]
-       (assert (either? res#))
-       res#)
+       (if (either? res#)
+         res#
+         (right res#)))
     (let [[name expr & bindings] bindings]
       `(let [val# ~expr]
-         (assert (either? val#))
-         (if (left? val#)
+         (if (and (either? val#) (left? val#))
            val#
-           (let [~name @val#]
+           (let [~name (if (either? val#)
+                         @val#
+                         val#)]
              (let= [~@bindings] ~@body)))))))
 
 (defn >>=
