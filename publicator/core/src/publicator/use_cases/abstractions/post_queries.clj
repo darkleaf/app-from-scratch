@@ -17,3 +17,16 @@
 
 (defn get-list []
   (-get-list *get-list*))
+
+
+(defprotocol GetById
+  (-get-by-id [this id]))
+
+(declare ^:dynamic *get-by-id*)
+
+(s/fdef get-by-id
+        :args (s/cat :id ::post/id)
+        :ret (s/nilable ::post))
+
+(defn get-by-id [id]
+  (-get-by-id *get-by-id* id))
