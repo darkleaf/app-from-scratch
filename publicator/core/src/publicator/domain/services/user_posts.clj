@@ -15,8 +15,8 @@
 
 
 (s/fdef author?
-        :args (s/cat :user ::user/user
-                     :post ::post/post)
+        :args (s/cat :user (s/nilable ::user/user)
+                     :post (s/nilable ::post/post))
         :ret boolean?)
 
 (defn author? [user post]

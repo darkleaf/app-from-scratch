@@ -22,18 +22,22 @@
     (e/left {:type ::invalid-params, :explain-data exp})
     (e/right)))
 
-(defn- create-user= [params]
+(defn- check-not-registered= [params]
   (if (user-q/get-by-login (:login params))
     (e/left {:type ::already-registered})
-    (e/right (storage/tx-create (user/build params)))))
+    (e/right)))
+
+(defn- create-user [params]
+  (storage/tx-create (user/build params)))
 
 (defn initial-params []
   @(e/let= [ok (check-logged-out=)]
-     (e/right {:type ::initial-params, :initial-params {}})))
+     {:type ::initial-params, :initial-params {}}))
 
 (defn process [params]
   @(e/let= [ok   (check-logged-out=)
             ok   (check-params= params)
-            user (create-user= params)]
+            ok   (check-not-registered= params)
+            user (create-user params)]
      (user-session/log-in! user)
-     (e/right {:type ::processed :user user})))
+     {:type ::processed :user user}))

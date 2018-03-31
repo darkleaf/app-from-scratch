@@ -31,7 +31,7 @@
 
 (defn initial-params []
   @(e/let= [ok (check-logged-out=)]
-     (e/right {:type ::initial-params, :initial-params {}})))
+     {:type ::initial-params, :initial-params {}}))
 
 (defn process [params]
   @(e/let= [ok   (check-logged-out=)
@@ -39,4 +39,4 @@
             user (find-user= params)
             ok   (check-authentication= user params)]
      (user-session/log-in! user)
-     (e/right {:type ::processed :user user})))
+     {:type ::processed :user user}))

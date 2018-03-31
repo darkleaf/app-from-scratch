@@ -13,4 +13,4 @@
 (defn process []
   @(e/let= [ok (check-logged-in=)]
      (user-session/log-out!)
-     (e/right {:type ::processed})))
+     {:type ::processed}))

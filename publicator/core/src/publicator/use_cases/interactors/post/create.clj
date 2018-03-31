@@ -20,9 +20,8 @@
     (e/left {:type ::invalid-params, :explain-data ed})
     (e/right)))
 
-(defn- create-post= [t params]
-  (e/right
-   (storage/create t (post/build params))))
+(defn- create-post [t params]
+  (storage/create t (post/build params)))
 
 (defn- set-authorship [t ipost]
   (let [iuser (user-session/iuser t)]
@@ -36,6 +35,6 @@
   (storage/with-tx t
     @(e/let= [ok (check-logged-in=)
               ok (check-params= params)
-              ipost (create-post= t params)]
+              ipost (create-post t params)]
        (set-authorship t ipost)
-       (e/right {:type ::processed, :post @ipost}))))
+       {:type ::processed, :post @ipost})))
