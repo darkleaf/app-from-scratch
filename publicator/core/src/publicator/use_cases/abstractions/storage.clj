@@ -17,7 +17,7 @@
         :args (s/cat :tx any?
                      :ids (s/coll-of ::id-generator/id :distinct true))
         :ret (s/map-of ::id-generator/id ::identity/identity)
-        :fn (fn idempotent? [{:keys [args ret]}]
+        :fn (fn identity-map? [{:keys [args ret]}]
               (= ret (apply get-many args))))
 
 (s/fdef create
