@@ -14,41 +14,39 @@
 (t/deftest main
   (let [password (factories/gen ::user/password)
         user     (factories/create-user {:password password})
-        params   {:login    (:login user)
-                  :password password}
-        resp     (sut/process params)]
+        params   {:login (:login user), :password password}
+        [tag]  (sut/process params)]
     (t/testing "success"
-      (t/is (= (:type resp)  ::sut/processed)))
+      (t/is (= ::sut/processed tag)))
     (t/testing "logged in"
       (t/is (user-session/logged-in?)))))
 
 (t/deftest wrong-login
   (let [params {:login    "john_doe"
                 :password "secret password"}
-        resp   (sut/process params)]
+        [tag]  (sut/process params)]
     (t/testing "has error"
-      (t/is (= (:type resp) ::sut/authentication-failed)))))
+      (t/is (=  ::sut/authentication-failed tag)))))
 
 (t/deftest wrong-password
-  (let [user         (factories/create-user)
-        params       {:login    (:login user)
-                      :password "wrong password"}
-        resp         (sut/process params)]
+  (let [user   (factories/create-user)
+        params {:login    (:login user)
+                :password "wrong password"}
+        [tag]  (sut/process params)]
     (t/testing "has error"
-      (t/is (= (:type resp) ::sut/authentication-failed)))))
+      (t/is (= ::sut/authentication-failed tag)))))
 
 (t/deftest already-logged-in
-  (let [user         (factories/create-user)
-        _            (user-session/log-in! user)
-        params       {:login "foo"
-                      :password "bar"}
-        resp         (sut/process params)]
+  (let [user   (factories/create-user)
+        _      (user-session/log-in! user)
+        params {:login    "foo"
+                :password "bar"}
+        [tag]  (sut/process params)]
     (t/testing "has error"
-      (t/is (= (:type resp) ::sut/already-logged-in)))))
+      (t/is (= ::sut/already-logged-in tag)))))
 
 (t/deftest invalid-params
   (let [params {}
-        resp   (sut/process params)]
+        [tag]  (sut/process params)]
     (t/testing "error"
-      (t/is (= (:type resp) ::sut/invalid-params))
-      (t/is (contains? resp :explain-data)))))
+      (t/is (= ::sut/invalid-params tag)))))

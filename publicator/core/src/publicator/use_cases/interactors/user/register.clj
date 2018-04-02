@@ -15,29 +15,52 @@
 (defn- check-logged-out= []
   (if (user-session/logged-out?)
     (e/right)
-    (e/left {:type ::already-logged-in})))
+    (e/left [::already-logged-in])))
 
 (defn- check-params= [params]
   (if-let [exp (s/explain-data ::params params)]
-    (e/left {:type ::invalid-params, :explain-data exp})
+    (e/left [::invalid-params exp])
     (e/right)))
 
 (defn- check-not-registered= [params]
   (if (user-q/get-by-login (:login params))
-    (e/left {:type ::already-registered})
+    (e/left [::already-registered])
     (e/right)))
 
 (defn- create-user [params]
   (storage/tx-create (user/build params)))
 
-(defn initial-params []
+(defn ^:dynamic *initial-params* []
   @(e/let= [ok (check-logged-out=)]
-     {:type ::initial-params, :initial-params {}}))
+     [::initial-params {}]))
 
-(defn process [params]
+(defn ^:dynamic *process* [params]
   @(e/let= [ok   (check-logged-out=)
             ok   (check-params= params)
             ok   (check-not-registered= params)
             user (create-user params)]
      (user-session/log-in! user)
-     {:type ::processed :user user}))
+     [::processed user]))
+
+(s/def ::already-logged-in (s/tuple #{::already-logged-in}))
+(s/def ::invalid-params (s/tuple #{::invalid-params} map?))
+(s/def ::already-registered (s/tuple #{::already-registered}))
+(s/def ::initial-params (s/tuple #{::initial-params} map?))
+(s/def ::processed (s/tuple #{::processed} ::user/user))
+
+(s/fdef initial-params
+        :ret (s/or :ok  ::initial-params
+                   :err ::already-logged-in))
+
+(s/fdef process
+        :args (s/cat :params any?)
+        :ret (s/or :ok  ::processed
+                   :err ::already-logged-in
+                   :err ::invalid-params
+                   :err ::already-registered))
+
+(defn initial-params []
+  (*initial-params*))
+
+(defn process [params]
+  (*process* params))

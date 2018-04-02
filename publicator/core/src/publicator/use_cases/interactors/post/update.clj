@@ -13,23 +13,23 @@
 (defn- check-logged-in= []
   (if (user-session/logged-in?)
     (e/right)
-    (e/left {:type ::logged-out})))
+    (e/left [::logged-out])))
 
 (defn- check-params= [params]
   (if-some [ed (s/explain-data ::params params)]
-    (e/left {:type ::invalid-params, :explain-data ed})
+    (e/left [::invalid-params ed])
     (e/right)))
 
 (defn- check-authorization= [t post]
   (let [iuser (user-session/iuser t)]
     (if (user-posts/author? @iuser post)
       (e/right)
-      (e/left {:type ::not-authorized}))))
+      (e/left [::not-authorized]))))
 
 (defn- get-ipost= [t id]
   (if-some [ipost (storage/get-one t id)]
     (e/right ipost)
-    (e/left {:type ::not-found})))
+    (e/left [::not-found])))
 
 (defn- update-post [ipost params]
   (dosync (alter ipost merge params)))
@@ -37,19 +37,47 @@
 (defn- post->params [post]
   (select-keys post [:title :content]))
 
-(defn initial-params [id]
+(defn ^:dynamic *initial-params* [id]
   (storage/with-tx t
     @(e/let= [ok     (check-logged-in=)
               ipost  (get-ipost= t id)
               ok     (check-authorization= t @ipost)
               params (post->params @ipost)]
-       {:type ::initial-params, :initial-params params})))
+       [::initial-params params])))
 
-(defn process [id params]
+(defn ^:dynamic *process* [id params]
   (storage/with-tx t
     @(e/let= [ok    (check-logged-in=)
               ok    (check-params= params)
               ipost (get-ipost= t id)
               ok    (check-authorization= t @ipost)]
        (update-post ipost params)
-       {:type ::processed, :post @ipost})))
+       [::processed @ipost])))
+
+(s/def ::logged-out (s/tuple #{::logged-out}))
+(s/def ::invalid-params (s/tuple #{::invalid-params} map?))
+(s/def ::not-found (s/tuple #{::not-found}))
+(s/def ::not-authorized (s/tuple #{::not-authorized}))
+(s/def ::initial-params (s/tuple #{::initial-params} map?))
+(s/def ::processed (s/tuple #{::processed} ::post/post))
+
+(s/fdef initial-params
+        :args (s/cat :id ::post/id)
+        :ret (s/or :ok  ::initial-params
+                   :err ::logged-out
+                   :err ::not-found))
+
+(s/fdef process
+        :args (s/cat :id ::post/id
+                     :params any?)
+        :ret (s/or :ok  ::processed
+                   :err ::logged-out
+                   :err ::not-authorized
+                   :err ::not-found
+                   :err ::invalid-params))
+
+(defn initial-params [id]
+  (*initial-params* id))
+
+(defn process [id params]
+  (*process* id params))

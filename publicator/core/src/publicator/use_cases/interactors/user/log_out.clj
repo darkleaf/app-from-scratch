@@ -8,9 +8,19 @@
 (defn- check-logged-in= []
   (if (user-session/logged-in?)
     (e/right)
-    (e/left {:type ::already-logged-out})))
+    (e/left [::already-logged-out])))
 
-(defn process []
+(defn ^:dynamic *process* []
   @(e/let= [ok (check-logged-in=)]
      (user-session/log-out!)
-     {:type ::processed}))
+     [::processed]))
+
+(s/def ::already-logged-out (s/tuple #{::already-logged-out}))
+(s/def ::processed (s/tuple #{::processed}))
+
+(s/fdef process
+        :ret (s/or :ok  ::processed
+                   :err ::already-logged-out))
+
+(defn process []
+  (*process*))

@@ -14,61 +14,56 @@
 (t/use-fixtures :once test-fixtures/instrument)
 
 (t/deftest process
-  (let [user   (factories/create-user)
-        _      (user-session/log-in! user)
-        post   (factories/create-post)
-        _      (storage/tx-alter (:id user) user-posts/add-post post)
-        params (factories/gen ::sut/params)
-        resp   (sut/process (:id post)  params)
-        post   (:post resp)]
+  (let [user       (factories/create-user)
+        _          (user-session/log-in! user)
+        post       (factories/create-post)
+        _          (storage/tx-alter (:id user) user-posts/add-post post)
+        params     (factories/gen ::sut/params)
+        [tag post] (sut/process (:id post)  params)]
     (t/testing "success"
-      (t/is (= (:type resp) ::sut/processed))
-      (t/is (some? post)))
+      (t/is (= ::sut/processed tag)))
     (t/testing "updated"
       (t/is (= params (select-keys post (keys params)))))))
 
 (t/deftest logged-out
   (let [post   (factories/create-post)
         params (factories/gen ::sut/params)
-        resp   (sut/process (:id post) params)]
+        [tag]  (sut/process (:id post) params)]
     (t/testing "has error"
-      (t/is (=  (:type resp)
-                ::sut/logged-out)))))
+      (t/is (=  ::sut/logged-out tag)))))
 
 (t/deftest another-author
   (let [user   (factories/create-user)
         _      (user-session/log-in! user)
         post   (factories/create-post)
         params (factories/gen ::sut/params)
-        resp   (sut/process (:id post) params)]
+        [tag]  (sut/process (:id post) params)]
     (t/testing "error"
-      (t/is (= (:type resp) ::sut/not-authorized)))))
+      (t/is (= ::sut/not-authorized tag)))))
 
 (t/deftest invalid-params
-  (let [user   (factories/create-user)
-        _      (user-session/log-in! user)
-        post   (factories/create-post)
-        params {}
-        resp   (sut/process (:id post) params)]
+  (let [user    (factories/create-user)
+        _       (user-session/log-in! user)
+        post    (factories/create-post)
+        params  {}
+        [tag _] (sut/process (:id post) params)]
     (t/testing "error"
-      (t/is (= (:type resp) ::sut/invalid-params))
-      (t/is (contains? resp  :explain-data)))))
+      (t/is (= ::sut/invalid-params tag)))))
 
 (t/deftest not-found
   (let [user     (factories/create-user)
         _        (user-session/log-in! user)
         params   (factories/gen ::sut/params)
         wrong-id -1
-        resp     (sut/process wrong-id params)]
+        [tag]    (sut/process wrong-id params)]
     (t/testing "error"
-      (t/is (= (:type resp) ::sut/not-found)))))
+      (t/is (= ::sut/not-found tag)))))
 
 (t/deftest initial-params
-  (let [user (factories/create-user)
-        _    (user-session/log-in! user)
-        post (factories/create-post)
-        _    (storage/tx-alter (:id user) user-posts/add-post post)
-        resp (sut/initial-params (:id post))]
+  (let [user    (factories/create-user)
+        _       (user-session/log-in! user)
+        post    (factories/create-post)
+        _       (storage/tx-alter (:id user) user-posts/add-post post)
+        [tag _] (sut/initial-params (:id post))]
     (t/testing "success"
-      (t/is (= (:type resp) ::sut/initial-params))
-      (t/is (s/valid? ::sut/params (:initial-params resp))))))
+      (t/is (=  ::sut/initial-params tag)))))

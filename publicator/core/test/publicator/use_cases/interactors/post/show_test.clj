@@ -17,7 +17,12 @@
         post (factories/create-post)
         _    (storage/tx-alter (:id user) user-posts/add-post post)]
     (t/testing "guest"
-      (let [resp (sut/process (:id post))
-            post (:post resp)]
-        (t/is (= ::sut/processed (:type resp)))
-        (t/is (some? post))))))
+      (let [[tag post] (sut/process (:id post))]
+        (t/is (= ::sut/processed tag))
+        (t/is (some? post))))
+    (t/testing "user"
+      (let [_          (user-session/log-in! user)
+            [tag post] (sut/process (:id post))]
+        (t/is (= ::sut/processed tag))
+        (t/is (some? post))
+        (t/is (-> post ::sut/can-edit? true?))))))

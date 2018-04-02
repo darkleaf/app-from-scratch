@@ -10,20 +10,25 @@
 (defn- get-by-id= [id]
   (if-let [post (post-q/get-by-id id)]
     (e/right post)
-    (e/left {:type ::not-found})))
+    (e/left [::not-found])))
+
+(defn ^:dynamic *process* [id]
+  @(e/let= [user (user-session/user)
+            post (get-by-id= id)
+            post (assoc post ::can-edit? (user-posts/author? user post))]
+     [::processed post]))
 
 
 (s/def ::can-edit? boolean?)
 (s/def ::post (s/merge ::post-q/post
                        (s/keys :req [::can-edit?])))
-(s/def ::type #{::processed ::not-found})
+(s/def ::not-found (s/tuple #{::not-found}))
+(s/def ::processed (s/tuple #{::processed} ::post))
 
 (s/fdef process
         :args (s/cat :id ::post/id)
-        :ret (s/keys :req-un [::type ::post]))
+        :ret (s/or :ok  ::processed
+                   :err ::not-found))
 
 (defn process [id]
-  @(e/let= [user (user-session/user)
-            post (get-by-id= id)
-            post (assoc post ::can-edit? (user-posts/author? user post))]
-     {:type ::processed, :post post}))
+  (*process* id))

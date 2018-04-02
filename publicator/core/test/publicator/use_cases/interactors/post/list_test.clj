@@ -18,19 +18,17 @@
         another-post (factories/create-post)
         _            (storage/tx-alter (:id user) user-posts/add-post post)]
     (t/testing "guest"
-      (let [resp  (sut/process)
-            posts (:posts resp)]
+      (let [[tag posts] (sut/process)]
         (t/testing "success"
-          (t/is (= (:type resp) ::sut/processed))
+          (t/is (= ::sut/processed tag))
           (t/is (not-empty posts)))
         (t/testing "can not edit"
           (t/is (every? #(-> % ::sut/can-edit? false?) posts)))))
     (t/testing "logged in"
-      (let [_     (user-session/log-in! user)
-            resp  (sut/process)
-            posts (:posts resp)]
+      (let [_           (user-session/log-in! user)
+            [tag posts] (sut/process)]
         (t/testing "success"
-          (t/is (= (:type resp) ::sut/processed))
+          (t/is (= ::sut/processed tag))
           (t/is (not-empty posts)))
         (t/testing "can edit"
           (t/is (some #(-> % ::sut/can-edit? true?) posts)))))))

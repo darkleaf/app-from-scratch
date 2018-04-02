@@ -12,31 +12,54 @@
 (defn- check-logged-out= []
   (if (user-session/logged-out?)
     (e/right)
-    (e/left {:type ::already-logged-in})))
+    (e/left [::already-logged-in])))
 
 (defn- find-user= [params]
   (if-let [user (user-q/get-by-login (:login params))]
     (e/right user)
-    (e/left {:type ::authentication-failed})))
+    (e/left [::authentication-failed])))
 
 (defn- check-authentication= [user params]
   (if (user/authenticated? user (:password params))
     (e/right)
-    (e/left {:type ::authentication-failed})))
+    (e/left [::authentication-failed])))
 
 (defn- check-params= [params]
   (if-let [exp (s/explain-data ::params params)]
-    (e/left {:type ::invalid-params, :explain-data exp})
+    (e/left [::invalid-params exp])
     (e/right)))
 
-(defn initial-params []
+(defn ^:dynamic *initial-params* []
   @(e/let= [ok (check-logged-out=)]
-     {:type ::initial-params, :initial-params {}}))
+     [::initial-params {}]))
 
-(defn process [params]
+(defn ^:dynamic *process* [params]
   @(e/let= [ok   (check-logged-out=)
             ok   (check-params= params)
             user (find-user= params)
             ok   (check-authentication= user params)]
      (user-session/log-in! user)
-     {:type ::processed :user user}))
+     [::processed]))
+
+(s/def ::already-logged-in (s/tuple #{::already-logged-in}))
+(s/def ::authentication-failed (s/tuple #{::authentication-failed}))
+(s/def ::invalid-params (s/tuple #{::invalid-params} map?))
+(s/def ::initial-params (s/tuple #{::initial-params} map?))
+(s/def ::processed (s/tuple #{::processed}))
+
+(s/fdef inital-params
+        :ret (s/or :ok  ::initial-params
+                   :err ::already-logged-in))
+
+(s/fdef process
+        :args (s/cat :params any?)
+        :ret (s/or :ok  ::processed
+                   :err ::already-logged-in
+                   :err ::authentication-failed
+                   :err ::invalid-params))
+
+(defn inital-params []
+  (*initial-params*))
+
+(defn process [params]
+  (*process* params))

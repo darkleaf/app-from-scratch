@@ -12,15 +12,15 @@
 (t/use-fixtures :once test-fixtures/instrument)
 
 (t/deftest main
-  (let [user (factories/create-user)
-        _    (user-session/log-in! user)
-        resp (sut/process)]
+  (let [user  (factories/create-user)
+        _     (user-session/log-in! user)
+        [tag] (sut/process)]
     (t/testing "success"
-      (t/is (= (:type resp) ::sut/processed)))
+      (t/is (= ::sut/processed tag)))
     (t/testing "logged out"
       (t/is (user-session/logged-out?)))))
 
 (t/deftest already-logged-out
-  (let [resp (sut/process)]
+  (let [[tag] (sut/process)]
     (t/testing "has error"
-      (t/is (= (:type resp) ::sut/already-logged-out)))))
+      (t/is (= ::sut/already-logged-out tag)))))

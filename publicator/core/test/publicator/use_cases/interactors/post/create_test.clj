@@ -13,31 +13,36 @@
 (t/use-fixtures :once test-fixtures/instrument)
 
 (t/deftest process
-  (let [user    (factories/create-user)
-        _       (user-session/log-in! user)
-        params  (factories/gen ::sut/params)
-        resp    (sut/process params)
-        user    (storage/tx-get-one (:id user))
-        post    (:post resp)]
+  (let [user       (factories/create-user)
+        _          (user-session/log-in! user)
+        params     (factories/gen ::sut/params)
+        [tag post] (sut/process params)
+        user       (storage/tx-get-one (:id user))]
     (t/testing "success"
-      (t/is (= (:type resp) ::sut/processed))
-      (t/is (some? post)))
+      (t/is (= ::sut/processed tag)))
     (t/testing "update user"
       (t/is (user-posts/author? user post)))))
 
-
 (t/deftest logged-out
   (let [params (factories/gen ::sut/params)
-        resp   (sut/process params)]
+        [tag]  (sut/process params)]
     (t/testing "has error"
-      (t/is (=  (:type resp)
-                ::sut/logged-out)))))
+      (t/is (=  ::sut/logged-out tag)))))
 
 (t/deftest invalid-params
-  (let [user   (factories/create-user)
-        _      (user-session/log-in! user)
-        params {}
-        resp   (sut/process params)]
+  (let [user    (factories/create-user)
+        _       (user-session/log-in! user)
+        params  {}
+        [tag _] (sut/process params)]
     (t/testing "error"
-      (t/is (= (:type resp) ::sut/invalid-params))
-      (t/is (contains? resp  :explain-data)))))
+      (t/is (=  ::sut/invalid-params tag)))))
+
+(t/deftest initial-params
+  (let [user    (factories/create-user)
+        _       (user-session/log-in! user)
+        [tag _] (sut/initial-params)]
+    (t/is (= ::sut/initial-params tag))))
+
+(t/deftest initial-params
+  (let [[tag] (sut/initial-params)]
+    (t/is (= ::sut/logged-out tag))))
