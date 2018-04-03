@@ -1,11 +1,17 @@
 {:deps {org.clojure/test.check {:mvn/version "0.9.0"}
-        darkleaf/either        {:local/root "../either"}}
+        darkleaf/either        {:git/url "https://github.com/darkleaf/either.git"
+                                :sha     "d7aa1934718722d3aefc064969c9250c690acfac"}}
 
  :aliases {:dev   {:extra-paths ["test"]
                    :extra-deps  {orchestra {:mvn/version "2017.11.12-1"}}}
-           :cider {:extra-deps {darkleaf/cider {:local/root "../cider"}}
-                   :main-opts  ["-m" "darkleaf.cider"]}
-           :repl  {:extra-deps {darkleaf/repl {:local/root "../repl"}}
-                   :main-opts  ["-m" "darkleaf.repl"]}}
+           :cider {:extra-deps {darkleaf/cider-tools-desp
+                                {:git/url "https://github.com/darkleaf/cider-tools-deps.git"
+                                 :sha     "9a4c8d92bce838b28f1156fa207f29c8441cf59b"}}
+                   :main-opts  ["-m" "darkleaf.cider-tools-deps"
+                                "port" "4444" "host" "0.0.0.0"]}
+           :repl  {:extra-deps {darkleaf/repl-tools-deps
+                                {:git/url "https://github.com/darkleaf/repl-tools-deps.git"
+                                 :sha     "330e82995a872d7d1f6420e2f167cf820fdd4558"}}
+                   :main-opts  ["-m" "darkleaf.repl-tools-deps"]}}
 
  :mvn/local-repo "../.m2"}
