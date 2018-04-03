@@ -80,7 +80,7 @@
         :args (s/cat :id ::id-generator/id
                      :f fn?
                      :args (s/* any?))
-        :ret ::aggregate/aggregate)
+        :ret (s/nilable ::aggregate/aggregate))
 
 (defn tx-alter [id f & args]
   (with-tx t
