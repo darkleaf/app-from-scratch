@@ -1,9 +1,9 @@
 {:deps {org.clojure/test.check {:mvn/version "0.9.0"}
+        orchestra              {:mvn/version "2017.11.12-1"}
         darkleaf/either        {:git/url "https://github.com/darkleaf/either.git"
                                 :sha     "d7aa1934718722d3aefc064969c9250c690acfac"}}
 
- :aliases {:dev   {:extra-paths ["test"]
-                   :extra-deps  {orchestra {:mvn/version "2017.11.12-1"}}}
+ :aliases {:dev   {:extra-paths ["test"]}
            :cider {:extra-deps {darkleaf/cider-tools-desp
                                 {:git/url "https://github.com/darkleaf/cider-tools-deps.git"
                                  :sha     "9a4c8d92bce838b28f1156fa207f29c8441cf59b"}}

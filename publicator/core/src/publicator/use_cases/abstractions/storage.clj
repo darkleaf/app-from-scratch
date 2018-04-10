@@ -4,7 +4,7 @@
    [publicator.domain.abstractions.id-generator :as id-generator]
    [publicator.domain.abstractions.aggregate :as aggregate]
    [publicator.domain.identity :as identity]
-   [publicator.ext :as ext]))
+   [publicator.utils.ext :as ext]))
 
 (defprotocol Storage
   (wrap-tx [this body]))

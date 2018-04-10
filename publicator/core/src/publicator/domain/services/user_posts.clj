@@ -2,7 +2,7 @@
   (:require
    [publicator.domain.aggregates.user :as user]
    [publicator.domain.aggregates.post :as post]
-   [publicator.ext :as ext]
+   [publicator.utils.ext :as ext]
    [clojure.spec.alpha :as s]))
 
 (s/fdef add-post

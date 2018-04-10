@@ -3,7 +3,7 @@
    [publicator.domain.identity :as identity]
    [publicator.domain.abstractions.aggregate :as aggregate]
    [publicator.use-cases.abstractions.storage :as storage]
-   [publicator.ext :as ext]))
+   [publicator.utils.ext :as ext]))
 
 (deftype Transaction [data identity-map]
   storage/Transaction

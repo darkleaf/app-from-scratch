@@ -5,10 +5,10 @@
    [publicator.domain.aggregates.post :as post]
    [publicator.domain.services.user-posts :as user-posts]
    [clojure.spec.alpha :as s]
-   [publicator.ext :as ext]
+   [publicator.utils.spec :as utils.spec]
    [darkleaf.either :as e]))
 
-(s/def ::params (ext/only-keys :req-un [::post/title ::post/content]))
+(s/def ::params (utils.spec/only-keys :req-un [::post/title ::post/content]))
 
 (defn- check-logged-in= []
   (if (user-session/logged-in?)

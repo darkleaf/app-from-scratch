@@ -5,9 +5,9 @@
    [publicator.domain.aggregates.user :as user]
    [darkleaf.either :as e]
    [clojure.spec.alpha :as s]
-   [publicator.ext :as ext]))
+   [publicator.utils.spec :as utils.spec]))
 
-(s/def ::params (ext/only-keys :req-un [::user/login ::user/password]))
+(s/def ::params (utils.spec/only-keys :req-un [::user/login ::user/password]))
 
 (defn- check-logged-out= []
   (if (user-session/logged-out?)

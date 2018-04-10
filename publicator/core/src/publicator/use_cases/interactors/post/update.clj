@@ -4,11 +4,11 @@
    [publicator.use-cases.services.user-session :as user-session]
    [publicator.domain.services.user-posts :as user-posts]
    [publicator.use-cases.abstractions.storage :as storage]
-   [publicator.ext :as ext]
+   [publicator.utils.spec :as utils.spec]
    [darkleaf.either :as e]
    [clojure.spec.alpha :as s]))
 
-(s/def ::params (ext/only-keys :req-un [::post/title ::post/content]))
+(s/def ::params (utils.spec/only-keys :req-un [::post/title ::post/content]))
 
 (defn- check-logged-in= []
   (if (user-session/logged-in?)

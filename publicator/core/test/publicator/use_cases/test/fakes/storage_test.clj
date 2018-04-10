@@ -3,10 +3,10 @@
    [publicator.use-cases.test.fakes.storage :as sut]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.domain.abstractions.aggregate :as aggregate]
-   [publicator.use-cases.test-fixtures :as test-fixtures]
+   [publicator.utils.fixtures :as utils.fixtures]
    [clojure.test :as t]))
 
-(t/use-fixtures :once test-fixtures/instrument)
+(t/use-fixtures :once utils.fixtures/instrument)
 
 (t/use-fixtures
   :each

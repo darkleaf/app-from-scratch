@@ -5,12 +5,12 @@
    [publicator.use-cases.services.user-session :as user-session]
    [publicator.domain.services.user-posts :as user-posts]
    [publicator.use-cases.test.fixtures :as fixtures]
-   [publicator.use-cases.test-fixtures :as test-fixtures]
+   [publicator.utils.fixtures :as utils.fixtures]
    [publicator.use-cases.test.factories :as factories]
    [clojure.test :as t]))
 
 (t/use-fixtures :each fixtures/fakes)
-(t/use-fixtures :once test-fixtures/instrument)
+(t/use-fixtures :once utils.fixtures/instrument)
 
 (t/deftest process
   (let [user       (factories/create-user)
