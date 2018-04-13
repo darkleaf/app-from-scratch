@@ -1,0 +1,22 @@
+{:deps {publicator.core            {:local/root "../core"}
+        ring/ring-mock             {:mvn/version "0.3.2"}
+        metosin/ring-http-response {:mvn/version "0.9.0"}
+        functionalbytes/sibiro     {:mvn/version "0.1.4"}
+        cljstache                  {:mvn/version "2.0.1"}
+        ring/ring-core             {:mvn/version "1.6.2"}
+        ring/ring-jetty-adapter    {:mvn/version "1.6.2"}
+        clj-http                   {:mvn/version "3.8.0"}
+        com.stuartsierra/component {:mvn/version "0.3.2"}}
+
+ :aliases {:dev   {:extra-paths ["dev" "test"]}
+           :cider {:extra-deps {darkleaf/cider-tools-desp
+                                {:git/url "https://github.com/darkleaf/cider-tools-deps.git"
+                                 :sha     "9a4c8d92bce838b28f1156fa207f29c8441cf59b"}}
+                   :main-opts  ["-m" "darkleaf.cider-tools-deps"
+                                "port" "4444" "host" "0.0.0.0"]}
+           :repl  {:extra-deps {darkleaf/repl-tools-deps
+                                {:git/url "https://github.com/darkleaf/repl-tools-deps.git"
+                                 :sha     "330e82995a872d7d1f6420e2f167cf820fdd4558"}}
+                   :main-opts  ["-m" "darkleaf.repl-tools-deps"]}}
+
+ :mvn/local-repo "../.m2"}

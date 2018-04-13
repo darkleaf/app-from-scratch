@@ -7,6 +7,7 @@ services:
     command: "true"
     ports:
       - "4444:4444" # nrepl
+      - "4445:4445" # http
     environment:
       - "GITLIBS=${PWD}/.gitlibs"
     volumes:
