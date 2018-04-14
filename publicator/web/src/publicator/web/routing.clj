@@ -8,5 +8,5 @@
 (defn build []
   (sibiro/compile-routes
    (set/union
-    pages.root/routes
-    user.log-in/routes)))
+    (pages.root/routes)
+    (user.log-in/routes))))

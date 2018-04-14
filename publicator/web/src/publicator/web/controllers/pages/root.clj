@@ -8,5 +8,5 @@
       (http-response/ok)
       (http-response/content-type "text/html")))
 
-(def routes
+(defn routes []
   #{[:get "/" show :pages/root]})

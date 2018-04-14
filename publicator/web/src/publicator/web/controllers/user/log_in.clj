@@ -7,9 +7,16 @@
   (let [resp (interactor/inital-params)]
     (base/handle resp)))
 
+(defn handler [{:keys [params]}]
+  (let [resp (interactor/process params)]
+    (base/handle resp)))
+
 (defmethod base/handle ::interactor/initial-params [[_ params]]
   {:status 200})
 
-(def routes
+(defmethod base/handle ::interactor/processed [_]
+  {:status 302})
+
+(defn routes []
   #{[:get "/log-in" form :user.log-in/form]
-    #_[:post "/log-in" #'handler :user.log-in/handler]})
+    [:post "/log-in" #'handler :user.log-in/handler]})

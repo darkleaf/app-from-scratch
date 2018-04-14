@@ -21,3 +21,17 @@
                          (handler req))]
     (t/is @called?)
     (t/is (http-predicates/ok? resp))))
+
+(t/deftest handler
+  (let [handler (handler/build)
+        params  (factories/gen ::interactor/params)
+        req     (mock.request/request :post "/log-in" params)
+        called? (atom false)
+        process (fn [p]
+                  (reset! called? true)
+                  (t/is (= params p))
+                  (factories/gen ::interactor/processed))
+        resp    (binding [interactor/*process* process]
+                  (handler req))]
+    (t/is @called?)
+    (t/is (http-predicates/redirection? resp))))
