@@ -57,24 +57,24 @@
   (let [test (storage/tx-create (->Test 0))
         id   (aggregate/id test)
         n    10
-        _    (->> (range n)
-                  (map (fn [_] (future (storage/tx-alter id update :counter inc))))
+        _    (->> (repeatedly #(future (storage/tx-alter id update :counter inc)))
+                  (take n)
+                  (doall)
                   (map deref)
                   (doall))
         test (storage/tx-get-one id)]
     (t/is (= n (:counter test)))))
-
 
 (t/deftest inner-concurrency
   (let [test (storage/tx-create (->Test 0))
         id   (aggregate/id test)
         n    10
         _    (storage/with-tx t
-               (->> (range n)
-                    (map (fn [_]
-                           (future (as-> id <>
-                                     (storage/get-one t <>)
-                                     (dosync (alter <> update :counter inc))))))
+               (->> (repeatedly #(future (as-> id <>
+                                           (storage/get-one t <>)
+                                           (dosync (alter <> update :counter inc)))))
+                    (take n)
+                    (doall)
                     (map deref)
                     (doall)))
         test (storage/tx-get-one id)]
