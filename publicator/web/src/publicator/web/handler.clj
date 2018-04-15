@@ -7,6 +7,12 @@
    [publicator.web.middlewares.layout :as layout]
    [publicator.web.middlewares.session :as session]))
 
+(defn- wrap-routes [handler routes]
+  (fn [req]
+    (-> req
+        (assoc :routes routes)
+        handler)))
+
 (defn build
   ([] (build {}))
   ([config]
@@ -14,6 +20,7 @@
          handler (sibiro.extras/make-handler routes)]
      (-> handler
          layout/wrap
+         (wrap-routes routes)
          (session/wrap (:session config {}))
          ring.keyword-params/wrap-keyword-params
          ring.params/wrap-params))))
