@@ -86,4 +86,4 @@
   (with-tx t
     (when-let [x (get-one t id)]
       (dosync
-       (apply alter x f args)))))
+       (apply identity/alter x f args)))))

@@ -1,6 +1,7 @@
 (ns publicator.use-cases.interactors.post.update
   (:require
    [publicator.domain.aggregates.post :as post]
+   [publicator.domain.identity :as identity]
    [publicator.use-cases.services.user-session :as user-session]
    [publicator.domain.services.user-posts :as user-posts]
    [publicator.use-cases.abstractions.storage :as storage]
@@ -32,7 +33,7 @@
     (e/left [::not-found])))
 
 (defn- update-post [ipost params]
-  (dosync (alter ipost merge params)))
+  (dosync (identity/alter ipost merge params)))
 
 (defn- post->params [post]
   (select-keys post [:title :content]))

@@ -3,6 +3,7 @@
    [publicator.use-cases.test.fakes.storage :as sut]
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.domain.abstractions.aggregate :as aggregate]
+   [publicator.domain.identity :as identity]
    [publicator.utils.fixtures :as utils.fixtures]
    [clojure.test :as t]))
 
@@ -17,7 +18,8 @@
 (defrecord Test [counter]
   aggregate/Aggregate
   (id [_] 42)
-  (spec [_] any?))
+  (spec [_] any?)
+  (wrap-update [this] this))
 
 (t/deftest create
   (let [test (storage/tx-create (->Test 0))
@@ -50,7 +52,7 @@
   (storage/with-tx t
     (let [x (storage/create t (->Test 0))
           y (storage/get-one t (aggregate/id @x))
-          _ (dosync (alter x update :counter inc))]
+          _ (dosync (identity/alter x update :counter inc))]
       (t/is (= 1 (:counter @x) (:counter @y))))))
 
 (t/deftest concurrency
@@ -72,7 +74,7 @@
         _    (storage/with-tx t
                (->> (repeatedly #(future (as-> id <>
                                            (storage/get-one t <>)
-                                           (dosync (alter <> update :counter inc)))))
+                                           (dosync (identity/alter <> update :counter inc)))))
                     (take n)
                     (doall)
                     (map deref)

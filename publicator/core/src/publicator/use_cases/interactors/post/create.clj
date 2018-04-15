@@ -4,6 +4,7 @@
    [publicator.use-cases.abstractions.storage :as storage]
    [publicator.domain.aggregates.post :as post]
    [publicator.domain.services.user-posts :as user-posts]
+   [publicator.domain.identity :as identity]
    [clojure.spec.alpha :as s]
    [publicator.utils.spec :as utils.spec]
    [darkleaf.either :as e]))
@@ -25,7 +26,7 @@
 
 (defn- set-authorship [t ipost]
   (let [iuser (user-session/iuser t)]
-    (dosync (alter iuser user-posts/add-post @ipost))))
+    (dosync (identity/alter iuser user-posts/add-post @ipost))))
 
 (defn ^:dynamic *initial-params* []
   @(e/let= [ok (check-logged-in=)]

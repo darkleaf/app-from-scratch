@@ -4,6 +4,10 @@
 
 (defprotocol Aggregate
   (id [this])
-  (spec [this]))
+  (spec [this])
+  (wrap-update [this]))
 
 (s/def ::aggregate #(satisfies? Aggregate %))
+
+(s/fdef wrap-update
+        :ret ::aggregate)
