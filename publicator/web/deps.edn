@@ -16,7 +16,7 @@
                                 "port" "4444" "host" "0.0.0.0"]}
            :repl  {:extra-deps {darkleaf/repl-tools-deps
                                 {:git/url "https://github.com/darkleaf/repl-tools-deps.git"
-                                 :sha     "330e82995a872d7d1f6420e2f167cf820fdd4558"}}
+                                 :sha     "1dc333ded30bd457674e43352803ebfc8e652887"}}
                    :main-opts  ["-m" "darkleaf.repl-tools-deps"]}}
 
  :mvn/local-repo "../.m2"}
