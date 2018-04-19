@@ -6,9 +6,11 @@
         ring/ring-core             {:mvn/version "1.6.2"}
         ring/ring-jetty-adapter    {:mvn/version "1.6.2"}
         clj-http                   {:mvn/version "3.8.0"}
-        com.stuartsierra/component {:mvn/version "0.3.2"}}
+        com.stuartsierra/component {:mvn/version "0.3.2"}
+        com.cognitect/transit-clj  {:mvn/version "0.8.309"}
+        phrase                     {:mvn/version "0.3-alpha3"}}
 
- :paths ["src" "resources"]
+ :paths   ["src" "resources"]
  :aliases {:dev   {:extra-paths ["dev" "test"]}
            :cider {:extra-deps {darkleaf/cider-tools-desp
                                 {:git/url "https://github.com/darkleaf/cider-tools-deps.git"

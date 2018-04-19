@@ -1,18 +1,15 @@
-<form action="{{form.action}}">
-    <div class="form-group">
-        <label for="login">Login</label>
-        <input type="text"
-               class="form-control"
-               id="login"
-               value="{{fields.login}}">
-    </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password"
-               class="form-control"
-               id="password"
-               value="{{fields.password}}">
-    </div>
+<div>
+    <div data-form-ujs="log-in" />
 
-    <button type="submit" class="btn btn-primary">Log in</button>
-</form>
+    <script id="log-in-description" type="application/transit+json">
+     {{&form-description}}
+    </script>
+
+    <script id="log-in-data" type="application/transit+json">
+     {{&form-data}}
+    </script>
+
+    <script id="log-in-errors" type="application/transit+json">
+     {{&form-errors}}
+    </script>
+</div>

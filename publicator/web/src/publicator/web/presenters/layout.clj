@@ -13,5 +13,4 @@
    ;;            :url "/aaaa"}
    :log-in {:visible true
             :text "Log in"
-            :url (sibiro/path-for routes :user.log-in/form)
-            :method "get"}})
+            :url (sibiro/path-for routes :user.log-in/form)}})
