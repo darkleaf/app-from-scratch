@@ -17,7 +17,7 @@
     (base/handle result ctx)))
 
 (defmethod base/handle ::interactor/initial-params [[_ params] ctx]
-  (let [model (presenter/initial-params params ctx)]
+  (let [model (presenter/initial-params ctx params)]
     (-> (template/render "user/log-in" model)
         (http-response/ok)
         (http-response/content-type "text/html"))))

@@ -12,15 +12,12 @@
 (defrecord Jetty [config server binding-map]
   component/Lifecycle
   (start [this]
-    (prn "start")
-    (prn @binding-map)
-
     (if server
       this
       (assoc this :server
              (jetty/run-jetty
               (-> (handler/build config)
-                  (wrap-binding @binding-map))
+                  (wrap-binding (:val binding-map)))
               (assoc config :join? false)))))
   (stop [this]
     (if server

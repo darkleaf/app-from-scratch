@@ -10,8 +10,7 @@
 (t/use-fixtures :each
   (fn [t]
     (let [system (component/system-map
-                  :binding-map (reify clojure.lang.IDeref
-                                 (deref [_] {}))
+                  :binding-map {:val {}}
                   :jetty (component/using (sut/build {:port port})
                                           [:binding-map]))
           system (component/start system)]
