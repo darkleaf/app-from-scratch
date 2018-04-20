@@ -2,15 +2,15 @@
   (:require
    [publicator.use-cases.interactors.post.list :as interactor]
    [publicator.domain.aggregates.user :as user]
-   [sibiro.core :as sibiro]))
+   [publicator.web.url-helpers :as url-helpers]))
 
-(defn- post->model [routes post]
+(defn- post->model [post]
   {:id             (:id post)
-   :url            (sibiro/path-for routes :post.list/handler)
-   :edit-url       (sibiro/path-for routes :post.list/handler)
+   :url            (url-helpers/path-for :post.list/handler)
+   :edit-url       (url-helpers/path-for :post.list/handler)
    :title          (:title post)
    :can-edit?      (::interactor/can-edit? post)
    :user-full-name (::user/full-name post)})
 
-(defn processed [{:keys [routes]} posts]
-  {:posts (map #(post->model routes %) posts)})
+(defn processed [posts]
+  {:posts (map post->model posts)})

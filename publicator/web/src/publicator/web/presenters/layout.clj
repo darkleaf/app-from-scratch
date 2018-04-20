@@ -1,16 +1,18 @@
 (ns publicator.web.presenters.layout
   (:require
-   [sibiro.core :as sibiro]))
+   [publicator.use-cases.services.user-session :as user-session]
+   [publicator.web.url-helpers :as url-helpers]))
 
-(defn present [{:keys [routes]}]
-  {
-   ;; :log-out {:visible false
-   ;;           :text "Log out"
-   ;;           :url "/aaaaaa"
-   ;;           :method "post"}
-   ;; :register {:visible false
-   ;;            :text "Register"
-   ;;            :url "/aaaa"}
-   :log-in {:visible true
-            :text "Log in"
-            :url (sibiro/path-for routes :user.log-in/form)}})
+(defn present [req]
+  (cond-> {}
+    (user-session/logged-in?)
+    (assoc :log-out {:text   "Log out"
+                     :url    "/aaaaaa"})
+
+    (user-session/logged-out?)
+    (assoc :register {:text "Register"
+                      :url  "/aaaa"})
+
+    (user-session/logged-out?)
+    (assoc :log-in {:text "Log in"
+                    :url  (url-helpers/path-for :user.log-in/form)})))

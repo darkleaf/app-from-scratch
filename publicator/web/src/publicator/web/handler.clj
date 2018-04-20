@@ -10,12 +10,6 @@
    [publicator.web.middlewares.session :as session]
    [publicator.web.transit :as t]))
 
-(defn- wrap-routes [handler routes]
-  (fn [req]
-    (-> req
-        (assoc :routes routes)
-        handler)))
-
 (defn- wrap-transit-params [handler]
   (fn [req]
     (let [req (if (= "application/transit+json"
@@ -29,13 +23,11 @@
 (defn build
   ([] (build {}))
   ([config]
-   (let [routes  (routing/build)
-         handler (sibiro.extras/make-handler routes)]
-     (-> handler
-         layout/wrap
-         (wrap-routes routes)
-         (session/wrap (:session config {}))
-         wrap-transit-params
-         ring.keyword-params/wrap-keyword-params
-         ring.params/wrap-params
-         (ring.resource/wrap-resource "publicator/web/public")))))
+   (-> routing/routes
+       sibiro.extras/make-handler
+       layout/wrap
+       (session/wrap (:session config {}))
+       wrap-transit-params
+       ring.keyword-params/wrap-keyword-params
+       ring.params/wrap-params
+       (ring.resource/wrap-resource "publicator/web/public"))))

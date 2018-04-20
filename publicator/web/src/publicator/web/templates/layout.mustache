@@ -17,13 +17,27 @@
                         <a class="nav-item nav-link" href="/posts">Posts</a>
                     </div>
                     <div class="navbar-nav">
-                        {{#log-in}} {{#visible}}
+                        {{#log-in}}
                             <a class="nav-item nav-link"
-                               data-method="{{method}}"
                                href="{{url}}">
                                 {{text}}
                             </a>
-                        {{/visible}} {{/log-in}}
+                        {{/log-in}}
+
+                        {{#register}}
+                            <a class="nav-item nav-link"
+                               href="{{url}}">
+                                {{text}}
+                            </a>
+                        {{/register}}
+
+                        {{#log-out}}
+                            <a class="nav-item nav-link"
+                               data-method="post"
+                               href="{{url}}">
+                                {{text}}
+                            </a>
+                        {{/log-out}}
                     </div>
                 </div>
             </nav>
@@ -31,11 +45,10 @@
                 {{&content}}
             </div>
 
-
-            <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
-            <script src="https://unpkg.com/rails-ujs@5.2.0/lib/assets/compiled/rails-ujs.js"></script>
-
-            <script src="/form_ujs.js"></script>
+            <script src="https://unpkg.com/rails-ujs@5.2.0/lib/assets/compiled/rails-ujs.js">
+            </script>
+            <script src="/form_ujs.js">
+            </script>
         </body>
     </html>
 </html>
