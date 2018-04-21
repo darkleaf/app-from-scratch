@@ -11,7 +11,7 @@
 
     (user-session/logged-out?)
     (assoc :register {:text "Register"
-                      :url  "/aaaa"})
+                      :url  (url-helpers/path-for :user.register/form)})
 
     (user-session/logged-out?)
     (assoc :log-in {:text "Log in"

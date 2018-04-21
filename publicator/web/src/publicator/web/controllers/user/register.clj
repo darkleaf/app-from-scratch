@@ -1,12 +1,12 @@
-(ns publicator.web.controllers.user.log-in
+(ns publicator.web.controllers.user.register
   (:require
-   [publicator.use-cases.interactors.user.log-in :as interactor]
+   [publicator.use-cases.interactors.user.register :as interactor]
    [publicator.web.presenters.explain-data :as explain-data]
-   [publicator.web.controllers.user.log-in-form :as form]
+   [publicator.web.controllers.user.register-form :as form]
    [publicator.web.controllers.base :as base]))
 
 (defn form [req]
-  (let [result (interactor/inital-params)]
+  (let [result (interactor/initial-params)]
     (base/handle result)))
 
 (defn handler [{:keys [transit-params]}]
@@ -25,12 +25,8 @@
       explain-data/->errors
       base/errors))
 
-(defmethod base/handle ::interactor/authentication-failed [_]
-  (-> (form/authentication-failed-error)
-      base/errors))
-
 (derive ::interactor/already-logged-in ::base/forbidden)
 
 (def routes
-  #{[:get "/log-in" #'form :user.log-in/form]
-    [:post "/log-in" #'handler :user.log-in/handler]})
+  #{[:get "/register" #'form :user.register/form]
+    [:post "/register" #'handler :user.register/handler]})

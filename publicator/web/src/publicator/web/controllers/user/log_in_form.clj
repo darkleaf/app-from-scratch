@@ -1,4 +1,4 @@
-(ns publicator.web.controllers.user.form
+(ns publicator.web.controllers.user.log-in-form
   (:require
    [publicator.web.url-helpers :as url-helpers]))
 
