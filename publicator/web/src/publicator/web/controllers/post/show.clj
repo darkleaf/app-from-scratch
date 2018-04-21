@@ -13,5 +13,7 @@
   (let [model (presenter/processed posts)]
     (base/render "post/show" model)))
 
+(derive ::interactor/not-found ::base/not-found)
+
 (def routes
   #{[:get "/posts/:id{\\d+}" #'handler :post.show/handler]})

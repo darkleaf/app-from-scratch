@@ -22,3 +22,15 @@
                   (handler req))]
     (t/is @called?)
     (t/is (http-predicates/ok? resp))))
+
+(t/deftest handler-not-found
+  (let [handler (handler/build)
+        req     (mock.request/request :get "/posts/1")
+        called? (atom false)
+        process (fn [id]
+                  (reset! called? true)
+                  (factories/gen ::interactor/not-found))
+        resp    (binding [interactor/*process* process]
+                  (handler req))]
+    (t/is @called?)
+    (t/is (http-predicates/not-found? resp))))
