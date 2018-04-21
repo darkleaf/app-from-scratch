@@ -4,6 +4,7 @@
    [clojure.set :as set]
    [publicator.web.controllers.pages.root :as pages.root]
    [publicator.web.controllers.user.log-in :as user.log-in]
+   [publicator.web.controllers.user.log-out :as user.log-out]
    [publicator.web.controllers.post.list :as post.list]
    [publicator.web.url-helpers :as url-helpers]))
 
@@ -12,6 +13,7 @@
    (set/union
     pages.root/routes
     user.log-in/routes
+    user.log-out/routes
     post.list/routes)))
 
 (alter-var-root #'url-helpers/routes (constantly routes))

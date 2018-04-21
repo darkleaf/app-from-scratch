@@ -48,7 +48,7 @@
         resp           (binding [interactor/*initial-params* initial-params]
                          (handler req))]
     (t/is @called?)
-    (t/is (not (http-predicates/ok? resp)))))
+    (t/is (http-predicates/forbidden? resp))))
 
 (t/deftest handler-already-logged-in
   (let [handler (handler/build)
@@ -60,7 +60,7 @@
         resp    (binding [interactor/*process* process]
                   (handler req))]
     (t/is @called?)
-    (t/is (not (http-predicates/ok? resp)))))
+    (t/is (http-predicates/forbidden? resp))))
 
 (t/deftest handler-invalid-params
   (let [handler (handler/build)

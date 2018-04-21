@@ -7,7 +7,7 @@
   (cond-> {}
     (user-session/logged-in?)
     (assoc :log-out {:text   "Log out"
-                     :url    "/aaaaaa"})
+                     :url    (url-helpers/path-for :user.log-out/handler)})
 
     (user-session/logged-out?)
     (assoc :register {:text "Register"

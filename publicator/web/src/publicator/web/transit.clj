@@ -1,4 +1,5 @@
 (ns publicator.web.transit
+  (:refer-clojure :exclude [read])
   (:require
    [cognitect.transit :as t])
   (:import
