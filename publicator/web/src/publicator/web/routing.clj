@@ -8,6 +8,7 @@
    [publicator.web.controllers.user.register :as user.register]
    [publicator.web.controllers.post.list :as post.list]
    [publicator.web.controllers.post.show :as post.show]
+   [publicator.web.controllers.post.create :as post.create]
    [publicator.web.url-helpers :as url-helpers]))
 
 (def routes
@@ -18,6 +19,7 @@
     user.log-out/routes
     user.register/routes
     post.list/routes
-    post.show/routes)))
+    post.show/routes
+    post.create/routes)))
 
 (alter-var-root #'url-helpers/routes (constantly routes))
