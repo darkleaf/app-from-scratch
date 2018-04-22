@@ -2,7 +2,6 @@
   (:require
    [publicator.web.template :as template]
    [publicator.web.form-renderer :as form-renderer]
-   [publicator.web.url-helpers :as url-helpers]
    [publicator.web.transit :as transit]
    [ring.util.http-response :as http-response]))
 
@@ -31,13 +30,11 @@
       http-response/ok
       (http-response/content-type "text/html")))
 
-(defn redirect [url-name]
-  (let [url (url-helpers/path-for url-name)]
-    (http-response/found url)))
+(defn redirect [url]
+  (http-response/found url))
 
-(defn redirect-form [url-name]
-  (let [url (url-helpers/path-for url-name)]
-    (http-response/created url)))
+(defn redirect-form [url]
+  (http-response/created url))
 
 (defn errors [errors]
   (-> errors

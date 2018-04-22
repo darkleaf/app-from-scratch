@@ -3,7 +3,8 @@
    [publicator.use-cases.interactors.user.log-in :as interactor]
    [publicator.web.presenters.explain-data :as explain-data]
    [publicator.web.forms.user.log-in :as form]
-   [publicator.web.controllers.base :as base]))
+   [publicator.web.controllers.base :as base]
+   [publicator.web.url-helpers :as url-helpers]))
 
 (defn form [req]
   (let [result (interactor/inital-params)]
@@ -18,7 +19,7 @@
     (base/form form)))
 
 (defmethod base/handle ::interactor/processed [_]
-  (base/redirect-form :pages/root))
+  (base/redirect-form (url-helpers/path-for :pages/root)))
 
 (defmethod base/handle ::interactor/invalid-params [[_ explain-data]]
   (-> explain-data
