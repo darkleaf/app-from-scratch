@@ -2,7 +2,7 @@
   (:require
    [publicator.use-cases.interactors.user.register :as interactor]
    [publicator.web.presenters.explain-data :as explain-data]
-   [publicator.web.controllers.user.register-form :as form]
+   [publicator.web.forms.user.register :as form]
    [publicator.web.controllers.base :as base]))
 
 (defn form [req]
@@ -14,7 +14,7 @@
     (base/handle result)))
 
 (defmethod base/handle ::interactor/initial-params [[_ params]]
-  (let [form (form/build params {})]
+  (let [form (form/build params)]
     (base/form form)))
 
 (defmethod base/handle ::interactor/processed [_]

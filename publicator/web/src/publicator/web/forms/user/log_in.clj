@@ -1,4 +1,4 @@
-(ns publicator.web.controllers.user.log-in-form
+(ns publicator.web.forms.user.log-in
   (:require
    [publicator.web.url-helpers :as url-helpers]))
 
@@ -8,9 +8,9 @@
     [:login {:widget :input, :label "Логин"}
      :password {:widget :input, :label "Пароль", :type "password"}]}})
 
-(defn build [initial-params errors]
+(defn build [initial-params]
   {:initial-data initial-params
-   :errors       errors
+   :errors       {}
    :description  (description)})
 
 (defn authentication-failed-error []

@@ -1,4 +1,4 @@
-(ns publicator.web.controllers.user.register-form
+(ns publicator.web.forms.user.register
   (:require
    [publicator.web.url-helpers :as url-helpers]))
 
@@ -9,7 +9,7 @@
      :full-name {:widget :input, :label "Полное имя"}
      :password {:widget :input, :label "Пароль", :type "password"}]}})
 
-(defn build [initial-params errors]
+(defn build [initial-params]
   {:initial-data initial-params
-   :errors       errors
+   :errors       {}
    :description  (description)})
