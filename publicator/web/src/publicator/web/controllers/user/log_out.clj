@@ -6,9 +6,9 @@
 
 (defn handler [_]
   (let [result (interactor/process)]
-    (base/handle result)))
+    (base/handle nil result)))
 
-(defmethod base/handle ::interactor/processed [_]
+(defmethod base/handle ::interactor/processed [_ _]
   (base/redirect (url-helpers/path-for :pages/root)))
 
 (derive ::interactor/already-logged-out ::base/forbidden)

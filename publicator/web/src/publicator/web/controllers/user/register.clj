@@ -8,20 +8,20 @@
 
 (defn form [req]
   (let [result (interactor/initial-params)]
-    (base/handle result)))
+    (base/handle nil result)))
 
 (defn handler [{:keys [transit-params]}]
   (let [result (interactor/process transit-params)]
-    (base/handle result)))
+    (base/handle nil result)))
 
-(defmethod base/handle ::interactor/initial-params [[_ params]]
+(defmethod base/handle ::interactor/initial-params [_ [_ params]]
   (let [form (form/build params)]
     (base/form form)))
 
-(defmethod base/handle ::interactor/processed [_]
+(defmethod base/handle ::interactor/processed [_ _]
   (base/redirect-form (url-helpers/path-for :pages/root)))
 
-(defmethod base/handle ::interactor/invalid-params [[_ explain-data]]
+(defmethod base/handle ::interactor/invalid-params [_ [_ explain-data]]
   (-> explain-data
       explain-data/->errors
       base/errors))

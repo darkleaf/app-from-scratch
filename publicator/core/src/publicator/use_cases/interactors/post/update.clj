@@ -66,6 +66,7 @@
         :args (s/cat :id ::post/id)
         :ret (s/or :ok  ::initial-params
                    :err ::logged-out
+                   :err ::not-authorized
                    :err ::not-found))
 
 (s/fdef process

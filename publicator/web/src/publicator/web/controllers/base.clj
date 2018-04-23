@@ -5,14 +5,14 @@
    [publicator.web.transit :as transit]
    [ring.util.http-response :as http-response]))
 
-(defmulti handle first)
+(defmulti handle (fn [ctx resp] (first resp)))
 
-(defmethod handle ::forbidden [_]
+(defmethod handle ::forbidden [_ _]
   {:status 403
    :headers {}
    :body "forbidden"})
 
-(defmethod handle ::not-found [_]
+(defmethod handle ::not-found [_ _]
   {:status 404
    :headers {}
    :body "not-found"})

@@ -7,9 +7,9 @@
 (defn handler [{:keys [route-params]}]
   (let [id     (-> route-params :id Integer.)
         result (interactor/process id)]
-    (base/handle result)))
+    (base/handle nil result)))
 
-(defmethod base/handle ::interactor/processed [[_ posts]]
+(defmethod base/handle ::interactor/processed [_ [_ posts]]
   (let [model (presenter/processed posts)]
     (base/render "post/show" model)))
 

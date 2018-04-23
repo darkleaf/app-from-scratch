@@ -8,7 +8,7 @@
 (defn- post->model [post]
   {:id             (:id post)
    :url            (url-helpers/path-for :post.show/handler {:id (-> post :id str)})
-   :edit-url       (url-helpers/path-for :post.list/handler)
+   :edit-url       (url-helpers/path-for :post.update/form  {:id (-> post :id str)})
    :title          (:title post)
    :can-edit?      (::interactor/can-edit? post)
    :user-full-name (::user/full-name post)})

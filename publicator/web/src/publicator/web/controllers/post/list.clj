@@ -6,9 +6,9 @@
 
 (defn handler [req]
   (let [result (interactor/process)]
-    (base/handle result)))
+    (base/handle nil result)))
 
-(defmethod base/handle ::interactor/processed [[_ posts]]
+(defmethod base/handle ::interactor/processed [_ [_ posts]]
   (let [model (presenter/processed posts)]
     (base/render "post/list" model)))
 
