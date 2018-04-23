@@ -3,7 +3,8 @@
    [publicator.web.url-helpers :as url-helpers]))
 
 (defn description [{:keys [url method]}]
-  {:widget :submit, :url url, :method method :nested
+  {:widget :submit, :name "Готово"
+   :url url, :method method :nested
    {:widget :group, :nested
     [:title {:widget :input, :label "Заголовок"}
      :content {:widget :textarea, :label "Содержание"}]}})

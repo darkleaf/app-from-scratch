@@ -3,7 +3,6 @@
    [sibiro.extras]
    [ring.middleware.params :as ring.params]
    [ring.middleware.keyword-params :as ring.keyword-params]
-   [ring.middleware.resource :as ring.resource]
    [ring.util.request :as ring.request]
    [publicator.web.routing :as routing]
    [publicator.web.middlewares.layout :as layout]
@@ -29,5 +28,4 @@
        (session/wrap (:session config {}))
        wrap-transit-params
        ring.keyword-params/wrap-keyword-params
-       ring.params/wrap-params
-       (ring.resource/wrap-resource "publicator/web/public"))))
+       ring.params/wrap-params)))
