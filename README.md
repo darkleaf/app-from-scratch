@@ -3,6 +3,6 @@
 
 # Структура репозитория
 
-+ [исходники проекта](/darkleaf/building-application/tree/publicator-2)
-+ [первая версия описания](/darkleaf/building-application/tree/text-1)
-+ [первая версия исходников](/darkleaf/building-application/tree/publicator-1)
++ [исходники проекта](https://github.com/darkleaf/building-application/tree/publicator-2)
++ [первая версия описания](https://github.com/darkleaf/building-application/tree/text-1)
++ [первая версия исходников](https://github.com/darkleaf/building-application/tree/publicator-1)
