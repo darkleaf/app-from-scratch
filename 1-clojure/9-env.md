@@ -1,7 +1,8 @@
 # tools.deps.alpha
 
 Для управления зависимостями воспользуемся утилитой
-[tools.deps.alpha](https://github.com/clojure/tools.deps.alpha).
+[tools.deps.alpha](https://github.com/clojure/tools.deps.alpha)
+от разработчиков clojure.
 
 Изначально clojure не имала утилит и распространялась в
 виде одного jar файла. И зависимостями управляли с помощью maven.
