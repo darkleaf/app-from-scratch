@@ -35,6 +35,20 @@
 и [reference](https://clojure.org/reference/deps_and_cli). Необходимо изучить эти материалы
 прежде чем двигаться дальше.
 
+# Docker
+
+Если вы умеете работать с docker, то можете воспользоватся следующим Dockerfile:
+
+```
+FROM openjdk:8-jre-alpine
+
+RUN apk add --update --no-cache curl bash
+
+RUN curl -O https://download.clojure.org/install/linux-install-1.9.0.358.sh \
+ && sh linux-install-1.9.0.358.sh \
+ && rm linux-install-1.9.0.358.sh
+```
+
 # Связь неймспейсов и файлов
 
 Clojure использует
@@ -44,10 +58,6 @@ Clojure использует
 Каждый файл содержит один неймспейс. При этом `lisp-case` преобразуется в `snake_case`.
 Например, неймспейс `project-name.cool-ns` будет записан в файле
 `src/project_name/cool_ns.clj`.
-
-# Docker
-
-
 
 # Repl
 
@@ -65,11 +75,17 @@ Clojure использует
 Если вы знакомы с emacs, то стоит для разработки использовать [cider](https://cider.readthedocs.io/en/latest/).
 Фактически, это IDE для clojure.
 
-Есть определенные сложности при использовании [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl)
-вместе с tools.deps,
+Способ подключения [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) через tools.deeps,
+описанный в readme, не работает и к тому же не позволяет задать порт и хост на котором запустится сервер nrepl.
+
+Я написал простую обертку - https://github.com/darkleaf/cider-tools-deps
 
 # Code reloading
 
 https://github.com/clojure/tools.namespace
 
 # Parinfer
+
+Плагин для множества редакторов, облегчающий редактирование lisp
+
+https://shaunlebron.github.io/parinfer/
