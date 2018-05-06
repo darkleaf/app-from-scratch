@@ -32,22 +32,25 @@
 Он использует clojure синтаксис и поддерживает все структуры данных clojure.
 Можно провести аналогию форматом JSON, который использует javascript синтаксис.
 
-Документация содержит исчерпывающие [guide](https://clojure.org/guides/deps_and_cli)
-и [reference](https://clojure.org/reference/deps_and_cli). Необходимо изучить эти материалы
-прежде чем двигаться дальше.
+
+Прежде чем двигаться дальше нужно изучить документацию:
+
++ https://clojure.org/guides/getting_started
++ https://clojure.org/guides/deps_and_cli
++ https://clojure.org/reference/deps_and_cli
 
 # Docker
 
-Если вы умеете работать с docker, то можете воспользоватся следующим Dockerfile:
+Есть готовые образы: https://hub.docker.com/_/clojure/
 
 ```
-FROM openjdk:8-jre-alpine
+# alpine
+run --rm -it clojure:tools-deps-alpine clojure
+```
 
-RUN apk add --update --no-cache curl bash
-
-RUN curl -O https://download.clojure.org/install/linux-install-1.9.0.358.sh \
- && sh linux-install-1.9.0.358.sh \
- && rm linux-install-1.9.0.358.sh
+```
+# debian
+run --rm -it clojure:tools-deps clojure
 ```
 
 # Связь неймспейсов и файлов
