@@ -1,7 +1,13 @@
+# Clean Architecture
+
+
 + https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html
 + https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164
 + https://cleancoders.com/episode/clean-code-episode-7/show
 
+
+
+![Clean Architecture](/img/clean_architecture.jpg)
 
 инверсия зависимости
 
