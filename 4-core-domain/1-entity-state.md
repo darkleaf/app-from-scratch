@@ -160,8 +160,14 @@
 
 ## Задание
 
-1. Реализуйте Пользоватьля(User) с набором полей: id, login, full-name, password-digest.
+1. Реализуйте Пользоватьля(User) с набором полей: id, login, full-name, password-digest, created-at.
    Параметры конструктора: login, full-name, password.
 2. Функцию `(defn authenticated? [user password])` для проверки пароля.
 
 Вам понадобится абстрактный PasswordHasher для получения `password-digest` и сверки пароля.
+
+Проверьте себя:
+
++ https://github.com/darkleaf/publicator/blob/master/core/src/publicator/domain/abstractions/password_hasher.clj
++ https://github.com/darkleaf/publicator/blob/master/core/src/publicator/domain/test/fakes/password_hasher.clj
++ https://github.com/darkleaf/publicator/blob/master/core/src/publicator/domain/abstractions/instant.clj
