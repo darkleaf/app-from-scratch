@@ -1,0 +1,16 @@
+{:deps {org.clojure/test.check {:mvn/version "0.9.0"}
+        orchestra              {:mvn/version "2017.11.12-1"}}
+
+
+ ;; обновить repl, чтобы тесты из src запускал
+
+ :aliases {:cider {:extra-deps {darkleaf/cider-tools-desp
+                                {:git/url "https://github.com/darkleaf/cider-tools-deps.git"
+                                 :sha     "3e6e5ce5cc7a9b9c99e43fb54c7280f8933c85da"}}
+                   :main-opts  ["-m" "darkleaf.cider-tools-deps"
+                                "port" "4444" "host" "0.0.0.0"]}
+           :repl  {:extra-deps {darkleaf/repl-tools-deps
+                                {:git/url "https://github.com/darkleaf/repl-tools-deps.git"
+                                 :sha     "1dc333ded30bd457674e43352803ebfc8e652887"}}
+                   :main-opts  ["-m" "darkleaf.repl-tools-deps"]}}
+ :mvn/local-repo ".m2"}
