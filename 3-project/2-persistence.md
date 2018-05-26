@@ -85,7 +85,7 @@ end
 (let [user (queries/get-user-by-id 1)
       user (update user :achievements conj :fishing)
       ...
-      author (gateway/get-user-by-id 1)
+      author (queries/get-user-by-id 1)
       author (update author :achievements conj :writing)]
   (commands/put-user user)
   ...
