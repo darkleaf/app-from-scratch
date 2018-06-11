@@ -203,6 +203,23 @@ API работы с транзакциями работает всегда с м
 
 ## Datomic / Datascript
 
-+ https://www.datomic.com/
-+ https://docs.datomic.com/cloud/whatis/data-model.html
-+ https://github.com/tonsky/datascript
+Если бы все наши сущности хранились в одной структуре данных(world),
+то можно было бы использовать чисто функциональный подход и
+обходиться только состояниями сущностей:
+
+```clojure
+(-> (get-world)
+    (update save-person (build-person {:name "Alice"}))
+    (update save-person (build-person {:name "Bob"}))
+    (update delete-last-person)
+    (save-world)
+```
+
+Очевидно, что загружать все содержимое базы данных в память для любой операции это плохая идея
+при больших объемах.
+Проект [Datascript](https://github.com/tonsky/datascript) - in-memory база, и подходит для
+исользования в браузере.
+[Datomic](https://www.datomic.com/) использует подключаемые хранилища и
+использует ленивую загрузку данных.
+
+https://docs.datomic.com/cloud/whatis/data-model.html

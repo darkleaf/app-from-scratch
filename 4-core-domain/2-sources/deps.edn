@@ -1,5 +1,7 @@
 {:deps {orchestra {:mvn/version "2017.11.12-1"}}
 
+ :paths ["src" "test"]
+
  :aliases {:cider {:extra-deps {darkleaf/cider-tools-desp
                                 {:git/url "https://github.com/darkleaf/cider-tools-deps.git"
                                  :sha     "3e6e5ce5cc7a9b9c99e43fb54c7280f8933c85da"}}
