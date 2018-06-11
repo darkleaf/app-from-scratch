@@ -123,3 +123,6 @@
 + https://clojure.org/guides/spec
 + https://clojuredocs.org/clojure.core/ex-info
 + https://clojuredocs.org/clojure.core/ex-data
+
+Проверьте себя:
++ https://github.com/darkleaf/publicator/blob/master/core/src/publicator/domain/identity.clj
