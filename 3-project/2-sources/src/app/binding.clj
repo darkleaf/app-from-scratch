@@ -20,6 +20,11 @@
     {:status  302
      :headers {"Location" (str "/users/" id)}}))
 
+(defn routing [req]
+  (cond
+    (= (:url req) "/users") (create-user-action req)
+    :else {:status 404}))
+
 (defn ->id-generator []
  (let [counter (atom 0)]
    (fn []
@@ -32,7 +37,7 @@
 (defn main []
   (binding [*id-generator*         (->id-generator)
             *notifier*             (->notifier)]
-    (create-user-action {:params {:login "Admin"}})))
+    (routing {:url "/users", :params {:login "Admin"}})))
 
 (comment
  (main))

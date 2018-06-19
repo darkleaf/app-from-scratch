@@ -20,6 +20,12 @@
       {:status  302
        :headers {"Location" (str "/users/" id)}})))
 
+(defn ->routing [create-user-action]
+  (fn [req]
+    (cond
+      (= (:url req) "/users") (create-user-action req)
+      :else {:status 404})))
+
 (defn ->id-generator []
  (let [counter (atom 0)]
    (fn []
@@ -34,8 +40,9 @@
         notifier             (->notifier)
         user-factory         (->user-factory id-generator)
         create-user-use-case (->create-user-use-case user-factory notifier)
-        create-user-action   (->create-user-action create-user-use-case)]
-    (create-user-action {:params {:login "Admin"}})))
+        create-user-action   (->create-user-action create-user-use-case)
+        routing              (->routing create-user-action)]
+    (routing {:url "/users", :params {:login "Admin"}})))
 
 (comment
  (main))
