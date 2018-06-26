@@ -8,7 +8,7 @@
 (defn user-factory [login]
   (->User (*id-generator*) login))
 
-(defn create-user-use-case [login]
+(defn ^:dynamic create-user-use-case [login]
   (let [user (user-factory login)]
     (*notifier* user)
     user))
