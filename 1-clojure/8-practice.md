@@ -153,11 +153,11 @@ function process(params) {
 Это напоминает железную дорогу.
 Функцию `check-logged-out=` можно представить так:
 
-<img src="/new/1-clojure/img/Recipe_RailwaySwitch.png" alt="railway fn">
+![railway fn](img/Recipe_RailwaySwitch.png)
 
 А `let=` комбинирует подобные функции следующим образом:
 
-<img src="/new/1-clojure/img/Recipe_RailwaySwitch2.png" alt="railway composition">
+![railway composition](img/Recipe_RailwaySwitch2.png)
 
 Из-за анологии с рельсами, наши функции, возвращающие Either будут заканчиваться на `=`.
 
