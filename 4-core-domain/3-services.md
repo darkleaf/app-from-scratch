@@ -7,7 +7,7 @@
 
 В сервисы удобно выносить функции для работы с ассоциациями:
 
-```cojure
+```clojure
 (ns publicator.domain.services.user-posts
   (:require
    [publicator.domain.aggregates.user :as user]
