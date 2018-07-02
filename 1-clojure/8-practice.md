@@ -112,7 +112,7 @@ function process(params) {
 то вычисление прерывается и сразу возвращается это значение. Можно провести аналогию с железной дорогой.
 Если в процессе встречаетя Left, то движение идет по красной ветке:
 
-<img src="/new/1-clojure/img/Recipe_RailwaySwitch2.png" alt="railway composition">
+![railway composition](img/Recipe_RailwaySwitch2.png)
 
 ```clojure
 (defn check-logged-out= []
