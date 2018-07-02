@@ -7,7 +7,7 @@
 + https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164
 + https://cleancoders.com/episode/clean-code-episode-7/show
 
-![Clean Architecture](/img/clean_architecture.jpg)
+![Clean Architecture](img/clean_architecture.jpg)
 
 ## Комментарии
 
@@ -51,7 +51,7 @@ Use Case не могут вызывать друг-друга.
 
 ***
 
-![Boundatries](/img/boundaries.png)
+![Boundatries](img/boundaries.png)
 
 Пример на ruby:
 
