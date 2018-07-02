@@ -183,7 +183,7 @@ var youngest = _
 
 На самом деле их чуть больше, подробнее о них можно прочитать в разделе [special_forms](https://clojure.org/reference/special_forms).
 
-Все все остальное - это макросы, или обертки вызовов java кода.
+Все все остальное - это функции, макросы или обертки для вызова java кода.
 
 ```clojure
 (macroexpand '(if-not false 1 2))

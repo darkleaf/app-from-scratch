@@ -1,6 +1,3 @@
-# Реализация
-
-```clojure
 (require '[clojure.test :as t])
 
 (defprotocol Either
@@ -232,4 +229,3 @@
         (t/is (left? ret))
         (t/is (= 1 @ret))
         (t/is (not (realized? spy)))))))
-```
