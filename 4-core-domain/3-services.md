@@ -40,7 +40,7 @@
 (defn money-transfer [from to amount]
   (dosync
    (alter from update :account - amount)
-   (alter to update :account - amount)))
+   (alter to update :account + amount)))
 ```
 
 Именно для этого случая идентичности описаны в слое Domain.
