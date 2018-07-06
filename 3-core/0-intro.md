@@ -45,3 +45,5 @@ DDD оперирует понятем Entity - единица предметно
 Поэтому основной слой приложения будет называться `domain`
 и содержать `entities`, `services`, `value-objects`.
 Следующий слой будет называться `use-cases`.
+
+Исходники подпроекта: https://github.com/darkleaf/publicator/tree/master/core
