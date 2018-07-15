@@ -199,7 +199,7 @@
 
 ## Sources
 
-[Исходники](/3-project/2-sources)
+[Исходники](/sources/2-design/5-di)
 
 ## Ссылки
 
