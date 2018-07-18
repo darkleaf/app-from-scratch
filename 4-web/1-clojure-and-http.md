@@ -1,6 +1,8 @@
 + ring
-+ jetty
++ упомянуть о pedestal
++ middleware
 + роутинг, как в приложении
++ jetty
 + component
 
 
