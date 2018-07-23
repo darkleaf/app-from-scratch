@@ -66,16 +66,36 @@
 
 ```
 
+***
+
+Instrument не работает для протоколов.
+Используйте обертки:
+
+```clojure
+(defprotocol P
+  (-foo [x y z]))
+
+(s/fdef foo ...)
+
+(defn foo [x y z]
+  (-foo x y z))
+```
+
+***
+
 Хочется использовать spec для валидации форм, но сгенерировать понятные пользователю
 сообщения об ошибках из структуры `explain-data` - нетривиальная задача. В этом поможет
 библиотека [phrase](https://github.com/alexanderkiel/phrase).
 
-Генератор не всемогущ и использует перебор.
+***
+
+Генератор не всемогущ и использует перебор:
+
 ```clojure
 (s/def ::login (s/and string? #(re-matches #"\w{3,255}" %)))
 (-> ::login s/gen sgen/generate) ;;=> "wbW8"
 
-
+;; UTF symbols
 (s/def ::smile (s/and string? #(re-matches #"[☺☹]" %)))
 (-> ::smile s/gen sgen/generate)
 ;;=> ExceptionInfo Couldn't satisfy such-that predicate after 100 tries.
