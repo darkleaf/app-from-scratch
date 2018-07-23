@@ -151,6 +151,16 @@
   (assert (= User (class user))))
 ```
 
+Запись - это надстройка над Типом. Тип - простой java класс не реализующий каких-либо интерфейсов.
+Как правило, пользуются Записями, а Типы используют, когда нужны "чистые" объекты.
+
+```clojure
+
+(deftype T [attr])
+
+(.-attr (->T 1)) ;;=> 1
+```
+
 Допустим, кроме записи `User`, у нас есть еще запись `Admin` и
 и мы хотим проверять может ли кто-то создавать пользователей:
 
@@ -180,8 +190,26 @@
 Протоколы могут содержать любое количество методов, как обычные java интерфесы,
 но не поддерживают наследование. Протоколы могут расширять любую запись и любой java класс.
 
+Кроме фукнции `extend` есть макросы `extend-type` и `extend-protocol`, которые делают запись
+более удобной:
+
+```clojure
+(extend-type User
+  CreateUserAbility
+  (can-create-user? [_] false)
+  OtherProtocol
+  (some-method [_] :ok))
+
+(extend-protocol CreateUserAbility
+  User
+  (can-create-user? [_] false)
+  Admin
+  (can-create-user? [_] true))
+```
+
 Если вы указываете реализацию протокола сразу при объявлении записи, то запись будет
-реализовывать java интерфейс, что существенно повысит производительность.
+реализовывать java интерфейс, что повысит производительность.
+Эта же форма позволяет Записи реализовывать не протокол, а просто java интерфейс.
 
 ```clojure
 (defprotocol CreateUserAbility
@@ -201,57 +229,6 @@
 (let [admin (->Admin 1 "Bob")]
   (assert (can-create-user? admin)))
 ```
-
-Бенчмарк с помощью [criterium](https://github.com/hugoduncan/criterium):
-
-```clojure
-(require '[criterium.core :as c])
-
-(defprotocol Proto
-  (method [this]))
-
-(defrecord A [])
-
-(extend A
-  Proto
-  {:method (fn [_] :ok)})
-
-(defrecord B []
-  Proto
-  (method [_] :ok))
-
-(do
-  (let [a (->A)]
-    (c/bench
-     (method a)))
-
-  (let [b (->B)]
-    (c/bench
-     (method b))))
-```
-
-```
-Evaluation count : 3652721640 in 60 samples of 60878694 calls.
-             Execution time mean : 9.284840 ns
-    Execution time std-deviation : 0.664706 ns
-   Execution time lower quantile : 8.490886 ns ( 2.5%)
-   Execution time upper quantile : 10.647587 ns (97.5%)
-                   Overhead used : 7.473709 ns
-
-Found 1 outliers in 60 samples (1.6667 %)
-    low-severe   1 (1.6667 %)
- Variance from outliers : 53.4630 % Variance is severely inflated by outliers
-
-Evaluation count : 5103040980 in 60 samples of 85050683 calls.
-             Execution time mean : 4.418015 ns
-    Execution time std-deviation : 0.170834 ns
-   Execution time lower quantile : 4.079148 ns ( 2.5%)
-   Execution time upper quantile : 4.747486 ns (97.5%)
-                   Overhead used : 7.473709 ns
-```
-
-Для A среднее время - 9.284840 ns, а для B - 4.418015 ns.
-Т.е. вызов происходит в 2 раза быстрее.
 
 Стоит отметить, что если вы хотите добавить метод для работы с конкретной записью,
 то вам не нужен полиморфизм, и достаточно воспользоваться обычной функцией:
@@ -299,6 +276,99 @@ Evaluation count : 5103040980 in 60 samples of 85050683 calls.
                  (method [_] val))]
   (assert (= val (method instance))))
 ```
+
+## Bechmark
+
+Бенчмарк с помощью [criterium](https://github.com/hugoduncan/criterium).
+Исходники в виде проекта можно получить [тут](sources/1-clojure/4-polymorphism/bench).
+
+```clojure
+(ns bench.bench
+  (:require
+   [criterium.core :as criterium]
+   [clojure.template :as template]))
+
+(defprotocol Proto
+  (proto-method [this]))
+
+(deftype A []
+  Proto
+  (proto-method [_] :ok))
+
+(deftype B [])
+
+(extend-type B
+  Proto
+  (proto-method [_] :ok))
+
+(def c (reify
+         Proto
+         (proto-method [_] :ok)))
+
+(deftype D [])
+(defmulti multi-method class)
+(defmethod multi-method D [_] :ok)
+
+(defn bench []
+  (template/do-template [method obj-expr]
+                        (do
+                          (prn '(method obj-expr))
+                          (let [obj obj-expr]
+                            (criterium/quick-bench (method obj)))
+                          (print "\n\n\n"))
+                        proto-method (->A)
+                        proto-method (->B)
+                        proto-method c
+                        multi-method (->D)))
+```
+
+
+```
+(proto-method (->A))
+Evaluation count : 132892038 in 6 samples of 22148673 calls.
+             Execution time mean : 2.863123 ns
+    Execution time std-deviation : 0.019320 ns
+   Execution time lower quantile : 2.838807 ns ( 2.5%)
+   Execution time upper quantile : 2.879423 ns (97.5%)
+                   Overhead used : 1.666364 ns
+
+
+
+(proto-method (->B))
+Evaluation count : 97196952 in 6 samples of 16199492 calls.
+             Execution time mean : 4.596519 ns
+    Execution time std-deviation : 0.064386 ns
+   Execution time lower quantile : 4.548777 ns ( 2.5%)
+   Execution time upper quantile : 4.701984 ns (97.5%)
+                   Overhead used : 1.666364 ns
+
+Found 1 outliers in 6 samples (16.6667 %)
+    low-severe   1 (16.6667 %)
+ Variance from outliers : 13.8889 % Variance is moderately inflated by outliers
+
+
+
+(proto-method c)
+Evaluation count : 131449896 in 6 samples of 21908316 calls.
+             Execution time mean : 2.857191 ns
+    Execution time std-deviation : 0.018021 ns
+   Execution time lower quantile : 2.843163 ns ( 2.5%)
+   Execution time upper quantile : 2.885828 ns (97.5%)
+                   Overhead used : 1.666364 ns
+
+
+
+(multi-method (->D))
+Evaluation count : 15134856 in 6 samples of 2522476 calls.
+             Execution time mean : 38.633649 ns
+    Execution time std-deviation : 0.717109 ns
+   Execution time lower quantile : 37.971764 ns ( 2.5%)
+   Execution time upper quantile : 39.594540 ns (97.5%)
+                   Overhead used : 1.666364 ns
+```
+
+Как видно, протоколы на порядок быстрее мультиметов. Реализация протокола в
+`deftype`, `defrecord` или `reify` в 2 раза быстрее `extend`.
 
 ## Expression problem
 
