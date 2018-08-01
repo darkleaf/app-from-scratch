@@ -6,6 +6,8 @@
            :repl  {:extra-deps {darkleaf/repl-tools-deps
                                 {:git/url "https://github.com/darkleaf/repl-tools-deps.git"
                                  :sha     "04e128ca67785e4eb7ccaecfdaffa3054442358c"}}
-                   :main-opts  ["-m" "darkleaf.repl-tools-deps"]}}
+                   :main-opts  ["-m" "darkleaf.repl-tools-deps"
+                                "reload-before-fn" "user/stop"
+                                "reload-after-fn" "user/start"]}}
 
  :mvn/local-repo ".m2"}
