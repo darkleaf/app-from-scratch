@@ -1,7 +1,6 @@
 # Ring
 
-[Ring](https://github.com/ring-clojure/ring)
-- самая распространенная абстракция web сервера в clojure.
+[Ring](https://github.com/ring-clojure/ring) - самая распространенная абстракция web сервера в clojure.
 Вдохновлен ruby rack, python wsgi.
 
 Обработчик запроса - простая функция, принимающая запрос, и возвращающая ответ.
@@ -14,7 +13,7 @@
    :body (:uri req)})
 ```
 
-Т.е. всегда отвечаем 200, а в теле ответа будет uri.
+В этом примере всегда отвечаем 200, а в теле ответа будет uri.
 
 Для добавления различного функционала мы можем использовать функции обертки -
 middleware:
@@ -42,12 +41,12 @@ Middleware устроена следующим образом:
 Подробнее про структуру запросов и ответов, обработчики и middleware можно почитать
 в [wiki проекта](https://github.com/ring-clojure/ring/wiki/Concepts).
 
-# Server
+## Server
 
-Ring - абстракция над веб сервером, а этих серверов может быть много:
+Ring - абстракция над веб сервером, а их может быть много, например:
 
-+ [jetty](https://www.eclipse.org/jetty/) - java сервер,
-  с [официальным адаптером](https://github.com/ring-clojure/ring/tree/master/ring-jetty-adapter)
++ [ring-jetty-adapter](https://github.com/ring-clojure/ring/tree/master/ring-jetty-adapter) -
+  адаптер для java сервера [jetty](https://www.eclipse.org/jetty/)
 + [http-kit](http://www.http-kit.org/)
 + [aleph](http://aleph.io/aleph/http.html)
 
@@ -68,13 +67,13 @@ Ring - абстракция над веб сервером, а этих серв
    :headers {"Content-Type" "text/plain"}
    :body (with-out-str (pp/pprint req))})
 
-(jetty/run-jetty #'handler {:port 4445})
+(jetty/run-jetty handler {:port 4445})
 ```
 
 Этот пример запускает http сервер на 4445 порту.
 В ответ на любой запрос тело ответа будет содержать красиво распечатанный запрос.
 
-# Другие прокеты
+## Другие прокеты
 
 Кроме ring есть и другие, несовместимые с ring, проекты:
 
