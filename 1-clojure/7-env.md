@@ -67,29 +67,42 @@ Clojure использует
 
 Воспользуемся нестандартным repl [rebel-readline](https://github.com/bhauman/rebel-readline).
 
-Он расширяется и я сделал собственный вариант, который умеет:
+Он расширяется, и я сделал собственный вариант, который умеет:
 
 + перезагружать код из измененных файлов
 + запускать тесты
 
 Подробности - https://github.com/darkleaf/repl-tools-deps
 
-# Cider
+Если вы не работали с emacs, и не планируете его изучение - это ваш выбор.
 
-Если вы знакомы с emacs, то стоит для разработки использовать [cider](https://cider.readthedocs.io/en/latest/).
-Фактически, это IDE для clojure.
+# Emacs + Cider
+
+Наверняка есть и другие реадкторы с поддержкой интеграции с repl, но emacs - by design ориентирован
+на интерактивную разработку и lisp подобные языки.
+
+Если вы никогда не использовали редактор с интегрированным repl,
+то [вы живете неправильно](https://tonsky.livejournal.com/316868.html).
+
+[cider](http://docs.cider.mx/en/latest/) - пакет для emacs, превращающий его в полноценную IDE.
 
 Способ подключения [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) через tools.deeps,
 описанный в readme, не работает и к тому же не позволяет задать порт и хост на котором запустится сервер nrepl.
 
 Я написал простую обертку - https://github.com/darkleaf/cider-tools-deps
 
+# Parinfer
+
+Расставлять и выравнивать скобки - неблагодарное занятие.
+Но есть плагин для множества редакторов, облегчающий редактирование lisp выражений:
+
+https://shaunlebron.github.io/parinfer/
+
 # Code reloading
+
+Для clojure есть механизм перезагрузки кода без перезагрузки jvm процесса:
 
 https://github.com/clojure/tools.namespace
 
-# Parinfer
-
-Плагин для множества редакторов, облегчающий редактирование lisp
-
-https://shaunlebron.github.io/parinfer/
+Для stateless кода все тривиально. А как перезагружать stateful код я расскажу позже,
+когда появится такая необходимость.
