@@ -30,10 +30,11 @@ Get используется при переходе по ссылкам, а pos
 </html>
 ```
 
-Через data атрибут можно указать метод запроса для ссылки:
+Через data атрибут можно указать метод запроса для ссылки, и при клике будет отправлен
+delete запрос:
 
 ```html
-<a class="nav-item nav-link" data-method="post" href="/some-url">
+<a class="nav-item nav-link" data-method="delete" href="/some-url">
   some text
 </a>
 ```

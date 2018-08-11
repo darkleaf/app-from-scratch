@@ -77,5 +77,5 @@ Ring - абстракция над веб сервером, а их может �
 
 Кроме ring есть и другие, несовместимые с ring, проекты:
 
-+ http://pedestal.io/
-+ https://funcool.github.io/catacumba/latest/
++ [pedestal](http://pedestal.io/)
++ [catacumba](https://funcool.github.io/catacumba/latest/)
