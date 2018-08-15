@@ -1,11 +1,74 @@
 # Controller
 
-Контроллеры в нашем приложении отвечает за обработку http запросов.
-Они не содержат какой-либо бизнес-логики.
-Т.е. это адаптеры для интерактора, которые конвертирует данные из
-запроса в данные понятные интерактору и наоборот.
+Контроллер - адаптер для интерактора, который конвертирует ring запрос
+в данные, понятные интерактору. Также котнроллер содержит объявление маршрутов.
+Формированием ring ответа занимается респондер, который мы рассмотрим в следующем параграфе.
 
 Контроллер - название довольно условное, и в своем проекте вы можете использовать другое название.
+
+Рассмотрим контроллер для сценария обновления поста.
+Напомню спецификации функций интерактора:
+
+```clojure
+(s/fdef initial-params
+  :args (s/cat :id ::post/id)
+  :ret (s/or :ok  ::initial-params
+             :err ::logged-out
+             :err ::not-authorized
+             :err ::not-found))
+
+(s/fdef process
+  :args (s/cat :id ::post/id
+               :params any?)
+  :ret (s/or :ok  ::processed
+             :err ::logged-out
+             :err ::not-authorized
+             :err ::not-found
+             :err ::invalid-params))
+```
+
+Т.е. котноллер должен содержать 2 экшена `initial-params` и `process`,
+которые
+
+
+```clojure
+(ns publicator.web.controllers.post.update
+  (:require
+   [publicator.use-cases.interactors.post.update :as interactor]))
+
+(defn- req->id [req]
+  (-> req
+      :route-params
+      :id
+      Integer.))
+
+(defn initial-params [req]
+  (let [id (req->id req)]
+    [interactor/initial-params id]))
+
+(defn process [{:keys [transit-params] :as req}]
+  (let [id (req->id req)]
+    [interactor/process id transit-params]))
+
+(def routes
+  #{[:get "/posts/:id{\\d+}/edit" #'initial-params :post.update/initial-params]
+    [:post "/posts/:id{\\d+}/edit" #'process :post.update/process]})
+```
+
+
+
+
+
+
+При этом контроллер и респондер не зависят друг от друга:
+
+![Diagram](img/controller-responder.png)
+
+Стрелки указывают направление зависимости неймспейсов.
+
+
+
+
 
 Рассмотрим контроллер обновления поста.
 Он содержит 2 экшена: `form` и `handler`.
@@ -50,25 +113,6 @@ url параметры, в нашем случае - `id`.
 Форма отправляет данные в формате [transit](https://github.com/cognitect/transit-format).
 Соответствующая middleware добавляет ключ `:transit-params` с данными формы.
 
-Напомню спецификации функций интерактора:
-
-```clojure
-(s/fdef initial-params
-  :args (s/cat :id ::post/id)
-  :ret (s/or :ok  ::initial-params
-             :err ::logged-out
-             :err ::not-authorized
-             :err ::not-found))
-
-(s/fdef process
-  :args (s/cat :id ::post/id
-               :params any?)
-  :ret (s/or :ok  ::processed
-             :err ::logged-out
-             :err ::not-authorized
-             :err ::not-found
-             :err ::invalid-params))
-```
 
 Наш контроллер должен обработать все эти случаи: 2 успешных и 4 провальных.
 Реакция на случаи `::logged-out`, `::not-authorized` и `::not-found`
@@ -184,99 +228,6 @@ url параметры, в нашем случае - `id`.
 [`do-template`](https://clojuredocs.org/clojure.template/do-template).
 
 
-```clojure
-(ns publicator.web.requests.post.update-test
-  (:require
-   [clojure.test :as t]
-   [publicator.utils.test.instrument :as instrument]
-   [ring.util.http-predicates :as http-predicates]
-   [ring.mock.request :as mock.request]
-   [publicator.web.handler :as handler]
-   [publicator.use-cases.interactors.post.update :as interactor]
-   [publicator.use-cases.test.factories :as factories]
-   [clojure.spec.alpha :as s]
-   [clojure.template :as template]))
 
-(t/use-fixtures :once instrument/fixture)
-
-(t/deftest form
-  (let [handler        (handler/build)
-        req            (mock.request/request :get "/posts/1/edit")
-        called?        (atom false)
-        initial-params (fn [id]
-                         (reset! called? true)
-                         (t/is (= 1 id))
-                         (factories/gen ::interactor/initial-params))
-        resp           (binding [interactor/*initial-params* initial-params]
-                         (handler req))]
-    (t/is @called?)
-    (t/is (http-predicates/ok? resp))))
-
-(t/deftest handler
-  (let [handler (handler/build)
-        params  (factories/gen ::interactor/params)
-        req     (-> (mock.request/request :post "/posts/1/edit")
-                    (assoc :transit-params params))
-        called? (atom false)
-        process (fn [id p]
-                  (reset! called? true)
-                  (t/is (= 1 id))
-                  (t/is (= params p))
-                  (factories/gen ::interactor/processed))
-        resp    (binding [interactor/*process* process]
-                  (handler req))]
-    (t/is @called?)
-    (t/is (http-predicates/created? resp))))
-
-(template/do-template
- [test-name interactor-resp predicate]
-
- (t/deftest test-name
-   (let [handler        (handler/build)
-         req            (mock.request/request :get "/posts/1/edit")
-         initial-params (fn [_] interactor-resp)
-         resp           (binding [interactor/*initial-params* initial-params]
-                          (handler req))]
-     (t/is (predicate resp))))
-
- form-logged-out
- (factories/gen ::interactor/logged-out)
- http-predicates/forbidden?
-
- form-not-authorized
- (factories/gen ::interactor/not-authorized)
- http-predicates/forbidden?
-
- form-not-found
- (factories/gen ::interactor/not-found)
- http-predicates/not-found?)
-
-(template/do-template
- [test-name interactor-resp predicate]
-
- (t/deftest test-name
-   (let [handler (handler/build)
-         req     (mock.request/request :post "/posts/1/edit")
-         process (fn [_ _] interactor-resp)
-         resp    (binding [interactor/*process* process]
-                   (handler req))]
-     (t/is (predicate resp))))
-
- handler-logged-out
- (factories/gen ::interactor/logged-out)
- http-predicates/forbidden?
-
- handler-not-authorized
- (factories/gen ::interactor/not-authorized)
- http-predicates/forbidden?
-
- handler-not-found
- (factories/gen ::interactor/not-found)
- http-predicates/not-found?
-
- handler-invalid-params
- [::interactor/invalid-params (s/explain-data ::interactor/params {})]
- http-predicates/unprocessable-entity?)
-```
 
 Самостоятельно просмотрите остальные конроллеры. https://github.com/darkleaf/publicator/tree/master/web/src/publicator/web/controllers

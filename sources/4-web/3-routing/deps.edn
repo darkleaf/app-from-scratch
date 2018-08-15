@@ -1,0 +1,5 @@
+{:deps  {ring/ring-core             {:mvn/version "1.6.2"}
+         ring/ring-jetty-adapter    {:mvn/version "1.6.2"}
+         com.stuartsierra/component {:mvn/version "0.3.2"}
+         functionalbytes/sibiro     {:mvn/version "0.1.4"}}
+ :paths ["dev" "src"]}
