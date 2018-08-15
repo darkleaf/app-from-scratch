@@ -20,7 +20,7 @@
 Если бы мы просили указать страну, то логично было бы задать значение по умолчанию,
 определив страну пользователя, по ip адресу.
 
-При обработки формы мы должны выполнить следующие шаги:
+При обработке формы мы должны выполнить следующие шаги:
 
 + проверить, что пользователь разлогинен
 + проверить входные параметры
@@ -65,11 +65,11 @@
 (defn- create-user [params]
   (storage/tx-create (user/build params)))
 
-(defn ^:dynamic *initial-params* []
+(defn initial-params []
   @(e/let= [ok (check-logged-out=)]
      [::initial-params {}]))
 
-(defn ^:dynamic *process* [params]
+(defn process [params]
   @(e/let= [ok   (check-logged-out=)
             ok   (check-params= params)
             ok   (check-not-registered= params)
@@ -84,6 +84,7 @@
 (s/def ::processed (s/tuple #{::processed} ::user/user))
 
 (s/fdef initial-params
+  :args empty?
   :ret (s/or :ok  ::initial-params
              :err ::already-logged-in))
 
@@ -94,11 +95,6 @@
              :err ::invalid-params
              :err ::already-registered))
 
-(defn initial-params []
-  (*initial-params*))
-
-(defn process [params]
-  (*process* params))
 ```
 
 Как видно, код полностью соответствует словестному описанию.
@@ -109,17 +105,23 @@
 В предыдущем разделе мы сталкивались с абстракцией генерации идентификаторов и шифрования паролей.
 В следующих параграфах мы разберем эти абстракции.
 
-Функции `*process*` и `*inital-params*` обявлены динамическими, что-бы можно было
-легко заменить реализацию сценариев заглушками при тестировании web-части приложения.
-Функции-обрертки `process` и `initial-params` нужны для объявления спецификаций.
-В противоном случае невозможно использовать
-[instrument](https://clojure.org/guides/spec#_instrumentation)
-для функций, хранящихся в динамических переменных.
-
 Интерактор использует монаду either для реализации вычислений, которые могут окончиться неудачей.
 Ранее мы [писали свою версию either](1-clojure/6-practice.md).
 Здесь же воспользуемся более удобным [вариантом](https://github.com/darkleaf/either).
 Ознакомьтесь с описанием библиотеки, чтобы узанть о различиях.
+
+Интерактор может содержать не только `process` и `initial-params`.
+Например, в некоторых случаюх удобно добавить метод `authorize`,
+чтобы показать пользователю причину недоступности операции.
+
+```clojure
+(defn authorize []
+  @(e/let= [ok (check-logged-out=)]
+     [::authorized]))
+```
+
+Не нужно задумываться о дополнительных методах раньше времени, когда появится потребность
+вы легко добавите их.
 
 Для наглядности посмотрите тесты. Фейковые реализации устанавиваются с помощью
 `(t/use-fixtures :each fakes/fixture)`.
