@@ -1,156 +1,123 @@
-Рассмотрим контроллер обновления поста.
-Он содержит 2 экшена: `form` и `handler`.
-Первый показывает форму на основе начальных параметров из интерактора,
-а второй обрабатывает данные от формы и передает их в интерактор.
-Оба экшена используют мультиметод `base/handle` для обработки ответа от интерактора.
+# Респондер
+
+Респондер отвечает за преобразование ответа интерактора к ring ответу.
+Для этого он может использовать презентеры, шаблоны и формы,
+эти детали мы рассмотрем в следующих параграфах.
+
+Рассмотрим респондер для сценария обновления поста.
+Напомню спецификации функций интерактора:
 
 ```clojure
-(ns publicator.web.controllers.post.update
-  (:require
-   [publicator.use-cases.interactors.post.update :as interactor]
-   [publicator.web.controllers.base :as base]
-   ;; ...
-   ))
+(s/fdef initial-params
+  :args (s/cat :id ::post/id)
+  :ret (s/or :ok  ::initial-params
+             :err ::logged-out
+             :err ::not-authorized
+             :err ::not-found))
 
-(defn form [{:keys [route-params]}]
-  (let [id     (-> route-params :id Integer.)
-        result (interactor/initial-params id)
-        ctx    {:id id}]
-    (base/handle ctx result)))
-
-(defn handler [{:keys [transit-params route-params]}]
-  (let [id     (-> route-params :id Integer.)
-        result (interactor/process id transit-params)
-        ctx    {:id id}]
-    (base/handle ctx result)))
-
-;;...
-
-(def routes
-  #{[:get "/posts/:id{\\d+}/edit" #'form :post.update/form]
-    [:post "/posts/:id{\\d+}/edit" #'handler :post.update/handler]})
+(s/fdef process
+  :args (s/cat :id ::post/id
+               :params any?)
+  :ret (s/or :ok  ::processed
+             :err ::logged-out
+             :err ::not-authorized
+             :err ::not-found
+             :err ::invalid-params))
 ```
 
-Экшен, как и любой ring обработчик, принимает http запрос и возвращает ответ.
+Как видно интерактор имеет 2 успешных и 4 провальных типа ответа.
+Очевидно, реакция на случаи `::logged-out`, `::not-authorized` и `::not-found`
+будет повторяться и для ответов других интеракторов.
 
-Контроллер также содержит объявление роутинга для своих экшенов.
-
-Ключ `:route-params` добавляет библиотека роутинга, он содержит
-url параметры, в нашем случае - `id`.
-
-Форма отправляет данные в формате [transit](https://github.com/cognitect/transit-format).
-Соответствующая middleware добавляет ключ `:transit-params` с данными формы.
-
-
-Наш контроллер должен обработать все эти случаи: 2 успешных и 4 провальных.
-Реакция на случаи `::logged-out`, `::not-authorized` и `::not-found`
-будет повторять реакцию для других интеракторов.
-
-Для этого удобно использовать мультиметод, который будет выбирать реализацию
-исходя из ответа интерактора. Также мультиметоды поддерживают наследование и для разных ответов
-мы сможем объявить одну и туже реализацию.
+Для обработки множества типов ответов удобно использовать мультиметод.
+При этом мультиметоды поддерживают наследование, что позволяет
+задать общие обработчики конкретным типам ответов.
 
 ```clojure
-(ns publicator.web.controllers.base
-  ;; ...
-  )
+(ns publicator.web.responders.base
+  (:require
+    ;; ...
+    ))
 
-(defmulti handle (fn [ctx resp] (first resp)))
+(defmulti ->resp (fn [result interactor-args] (first result)))
 
-(defmethod handle ::forbidden [_ _]
+(defmethod ->resp ::forbidden [_ _]
   {:status 403
    :headers {}
    :body "forbidden"})
 
-(defmethod handle ::not-found [_ _]
-  {:status 404
-   :headers {}
-   :body "not-found"})
-
 ;; ...
 ```
 
-`handle` принимает 2 аргумента: контекст и ответ интерактора.
-Ответ интерактора - вектор, первым элементом которого будет тип ответа.
-Диспетчерезация идет как раз по типу ответа.
-
-`handle` имеет 2 общих реализации: `::forbidden` и `::not-found`.
-Теперь мы можем установить соответствие между типом ответа нашего интерактора
-и общим обработчиком:
+Здесь мы объявляем мультиметод, принимающий 2 аргумента: ответ интерактора и вектор
+аргументов. Также объявляются общие реализации для последующего связывания с конкретными ответами:
 
 ```clojure
-(ns publicator.web.controllers.post.update
+(ns publicator.web.responders.post.update
   (:require
    [publicator.use-cases.interactors.post.update :as interactor]
-   [publicator.web.controllers.base :as base]
-   ;; ...
-   ))
-
-;; ...
-
-(derive ::interactor/logged-out ::base/forbidden)
-(derive ::interactor/not-authorized ::base/forbidden)
-(derive ::interactor/not-found ::base/not-found)
-
-;; ...
-```
-
-Теперь, если интерактор вернет ответ с типом `::interactor/logged-out` или
-`::interactor/not-authorized`,
-то приложение  покажет сообщение `forbidden` со статусом 403.
-
-Добавим методы для оставшихся типов:
-
-```clojure
-(ns publicator.web.controllers.post.update
-  (:require
-   [publicator.use-cases.interactors.post.update :as interactor]
-   [publicator.web.presenters.explain-data :as explain-data]
+   [publicator.web.responders.base :as base]
+   [publicator.web.responders.responses :as responses]
    [publicator.web.forms.post.params :as form]
-   [publicator.web.controllers.base :as base]
-   [publicator.web.url-helpers :as url-helpers]))
+   [publicator.web.routing :as routing]))
 
-(defn form [{:keys [route-params]}]
-  (let [id     (-> route-params :id Integer.)
-        result (interactor/initial-params id)
-        ctx    {:id id}]
-    (base/handle ctx result)))
-
-(defn handler [{:keys [transit-params route-params]}]
-  (let [id     (-> route-params :id Integer.)
-        result (interactor/process id transit-params)
-        ctx    {:id id}]
-    (base/handle ctx result)))
-
-(defmethod base/handle ::interactor/initial-params [ctx [_ params]]
-  (let [cfg  {:url    (url-helpers/path-for :post.update/handler {:id (-> ctx :id str)})
+(defmethod base/->resp ::interactor/initial-params [[_ params] [id]]
+  (let [cfg  {:url    (routing/path-for :post.update/process {:id (str id)})
               :method :post}
         form (form/build cfg params)]
-    (base/render-form form)))
+    (responses/render-form form)))
 
-(defmethod base/handle ::interactor/processed [_ _]
-  (base/redirect-form (url-helpers/path-for :pages/root)))
-
-(defmethod base/handle ::interactor/invalid-params [_ [_ explain-data]]
-  (-> explain-data
-      explain-data/->errors
-      base/errors))
-
+(derive ::interactor/processed ::base/redirect-to-root)
+(derive ::interactor/invalid-params ::base/invalid-params)
 (derive ::interactor/logged-out ::base/forbidden)
 (derive ::interactor/not-authorized ::base/forbidden)
 (derive ::interactor/not-found ::base/not-found)
-
-(def routes
-  #{[:get "/posts/:id{\\d+}/edit" #'form :post.update/form]
-    [:post "/posts/:id{\\d+}/edit" #'handler :post.update/handler]})
 ```
 
-В следующих параграфах мы подробно рассмотрим роутинг, рендеринг, презентеры, формы.
+Отмечу, что ответ с типом `::interactor/initial-params` не содержит идентификатора поста,
+этот идентификатор извлекается из аргументов с ктоторыми был вызван интерактор.
 
-Контроллер не тестируется в изоляции, а тестирется сразу обработчик
-всех запросов. Т.е. тестируются middleware, роутинг, контроллер, презентеры, шаблоны.
-В подпроекте core интеракторы уже протестированы, и нет смысла повторять эти тесты.
-Достаточно подменить интерактор заглушкой, возвращающей нужный ответ.
-Большинство ответов интеракторов можно сгенерировать автоматически на основе спецификаций их функций.
-Чтобы не повторять шаблонный код, воспользуемся макросом
-[`do-template`](https://clojuredocs.org/clojure.template/do-template).
+```clojure
+(ns publicator.web.responders.post.update-test
+  (:require
+   [publicator.utils.test.instrument :as instrument]
+   [publicator.web.responders.post.update :as sut]
+   [publicator.web.responders.base :as base]
+   [publicator.use-cases.test.factories :as factories]
+   [publicator.use-cases.interactors.post.update :as interactor]
+   [publicator.web.responders.shared-testing :as shared-testing]
+   [ring.util.http-predicates :as http-predicates]
+   [clojure.spec.alpha :as s]
+   [clojure.test :as t]))
+
+(t/use-fixtures :once instrument/fixture)
+
+(t/deftest all-implemented
+  (shared-testing/all-responders-are-implemented `interactor/initial-params)
+  (shared-testing/all-responders-are-implemented `interactor/process))
+
+(t/deftest initial-params
+  (let [result (factories/gen ::interactor/initial-params)
+        args   [1]
+        resp   (base/->resp result args)]
+    (t/is (http-predicates/ok? resp))))
+```
+
+```clojure
+(ns publicator.web.responders.shared-testing
+  (:require
+   [publicator.web.responders.base :as base]
+   [clojure.spec.alpha :as s]
+   [clojure.test :as t]))
+
+(defn all-responders-are-implemented [sym]
+  (t/testing sym
+    (let [[_ & pairs] (-> sym s/get-spec :ret s/describe)
+          specs       (keep-indexed
+                       (fn [idx item] (if (odd? idx) item))
+                       pairs)
+          implemented (-> base/->resp methods keys)]
+      (doseq [spec specs]
+        (t/testing spec
+          (t/is (some #(isa? spec %) implemented) "not implemented"))))))
+```
