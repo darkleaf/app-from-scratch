@@ -36,17 +36,29 @@
 ```clojure
 (ns publicator.web.responders.base
   (:require
-    ;; ...
-    ))
+   [publicator.web.responses :as responses]
+   [publicator.web.presenters.explain-data :as explain-data]
+   [publicator.web.routing :as routing]))
 
-(defmulti ->resp (fn [result interactor-args] (first result)))
+(defmulti result->resp (fn [result interactor-args] (first result)))
 
-(defmethod ->resp ::forbidden [_ _]
+(defmethod result->resp ::forbidden [_ _]
   {:status 403
    :headers {}
    :body "forbidden"})
 
-;; ...
+(defmethod result->resp ::not-found [_ _]
+  {:status 404
+   :headers {}
+   :body "not-found"})
+
+(defmethod result->resp ::invalid-params [[_ explain-data] _]
+  (-> explain-data
+      explain-data/->errors
+      responses/render-errors))
+
+(defmethod result->resp ::redirect-to-root [_ _]
+  (responses/redirect-for-form (routing/path-for :pages/root)))
 ```
 
 Здесь мы объявляем мультиметод, принимающий 2 аргумента: ответ интерактора и вектор
@@ -56,22 +68,22 @@
 (ns publicator.web.responders.post.update
   (:require
    [publicator.use-cases.interactors.post.update :as interactor]
-   [publicator.web.responders.base :as base]
-   [publicator.web.responders.responses :as responses]
+   [publicator.web.responders.base :as responders.base]
+   [publicator.web.responses :as responses]
    [publicator.web.forms.post.params :as form]
    [publicator.web.routing :as routing]))
 
-(defmethod base/->resp ::interactor/initial-params [[_ params] [id]]
+(defmethod responders.base/result->resp ::interactor/initial-params [[_ params] [id]]
   (let [cfg  {:url    (routing/path-for :post.update/process {:id (str id)})
               :method :post}
         form (form/build cfg params)]
     (responses/render-form form)))
 
-(derive ::interactor/processed ::base/redirect-to-root)
-(derive ::interactor/invalid-params ::base/invalid-params)
-(derive ::interactor/logged-out ::base/forbidden)
-(derive ::interactor/not-authorized ::base/forbidden)
-(derive ::interactor/not-found ::base/not-found)
+(derive ::interactor/processed ::responders.base/redirect-to-root)
+(derive ::interactor/invalid-params ::responders.base/invalid-params)
+(derive ::interactor/logged-out ::responders.base/forbidden)
+(derive ::interactor/not-authorized ::responders.base/forbidden)
+(derive ::interactor/not-found ::responders.base/not-found)
 ```
 
 Отмечу, что ответ с типом `::interactor/initial-params` не содержит идентификатора поста,
@@ -82,7 +94,7 @@
   (:require
    [publicator.utils.test.instrument :as instrument]
    [publicator.web.responders.post.update :as sut]
-   [publicator.web.responders.base :as base]
+   [publicator.web.responders.base :as responders.base]
    [publicator.use-cases.test.factories :as factories]
    [publicator.use-cases.interactors.post.update :as interactor]
    [publicator.web.responders.shared-testing :as shared-testing]
@@ -99,14 +111,14 @@
 (t/deftest initial-params
   (let [result (factories/gen ::interactor/initial-params)
         args   [1]
-        resp   (base/->resp result args)]
+        resp   (responders.base/result->resp result args)]
     (t/is (http-predicates/ok? resp))))
 ```
 
 ```clojure
 (ns publicator.web.responders.shared-testing
   (:require
-   [publicator.web.responders.base :as base]
+   [publicator.web.responders.base :as responders.base]
    [clojure.spec.alpha :as s]
    [clojure.test :as t]))
 
@@ -116,7 +128,7 @@
           specs       (keep-indexed
                        (fn [idx item] (if (odd? idx) item))
                        pairs)
-          implemented (-> base/->resp methods keys)]
+          implemented (-> responders.base/result->resp methods keys)]
       (doseq [spec specs]
         (t/testing spec
           (t/is (some #(isa? spec %) implemented) "not implemented"))))))

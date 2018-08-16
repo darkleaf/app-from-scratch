@@ -103,4 +103,48 @@ url параметры, в нашем случае - `id`.
 Проверяем роутинг. Проверяем правильность возвращаемой функции интерактора,
 а также соответствие полученных агрументов интерактора их спецификации.
 
+Кроме контроллеров - адаптеров интеракторов, в веб приложении есть потребность в обычных страницах.
+Эшены таких контроллеров возвращают не вектор, как описывалось ранее, а обычный ring ответ:
+
+```clojure
+(ns publicator.web.controllers.pages.root
+  (:require
+   [publicator.web.responses :as responses]))
+
+(defn show [_]
+  (responses/render-page "pages/root" {}))
+
+(def routes
+  #{[:get "/" #'show :pages/root]})
+```
+
+В предыдущем параграфе мы видели middleware, оборачивающую экшены контроллеров:
+
+```
+(defn middleware [handler]
+  (fn [req]
+    (let [[interactor & args] (handler req)
+          result              (apply interactor args)]
+      (responder result args))))
+```
+
+Для того, чтобы обрабатывать обычные ring ответы добавим соответствующее условие:
+
+```clojure
+(ns publicator.web.middlewares.responder
+  (:require
+   [publicator.web.responders.base :as responders.base]
+   ;; ..
+   ))
+
+(defn wrap-reponder [handler]
+  (fn [req]
+    (let [resp (handler req)]
+      (if (vector? resp)
+        (let [[interactor & args] resp
+              result              (apply interactor args)]
+          (responders.base/result->resp result args))
+        resp))))
+```
+
 Самостоятельно просмотрите все конроллеры. https://github.com/darkleaf/publicator/tree/master/web/src/publicator/web/controllers
