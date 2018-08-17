@@ -70,13 +70,10 @@
    [publicator.use-cases.interactors.post.update :as interactor]
    [publicator.web.responders.base :as responders.base]
    [publicator.web.responses :as responses]
-   [publicator.web.forms.post.params :as form]
-   [publicator.web.routing :as routing]))
+   [publicator.web.forms.post.params :as form]))
 
 (defmethod responders.base/result->resp ::interactor/initial-params [[_ post params]]
-  (let [cfg  {:url    (routing/path-for :post.update/process {:id (-> post :id str)})
-              :method :post}
-        form (form/build cfg params)]
+  (let [form (form/build-update (:id post) params)]
     (responses/render-form form)))
 
 (derive ::interactor/processed ::responders.base/redirect-to-root)
