@@ -40,24 +40,24 @@
    [publicator.web.presenters.explain-data :as explain-data]
    [publicator.web.routing :as routing]))
 
-(defmulti result->resp (fn [result interactor-args] (first result)))
+(defmulti result->resp first)
 
-(defmethod result->resp ::forbidden [_ _]
+(defmethod result->resp ::forbidden [_]
   {:status 403
    :headers {}
    :body "forbidden"})
 
-(defmethod result->resp ::not-found [_ _]
+(defmethod result->resp ::not-found [_]
   {:status 404
    :headers {}
    :body "not-found"})
 
-(defmethod result->resp ::invalid-params [[_ explain-data] _]
+(defmethod result->resp ::invalid-params [[_ explain-data]]
   (-> explain-data
       explain-data/->errors
       responses/render-errors))
 
-(defmethod result->resp ::redirect-to-root [_ _]
+(defmethod result->resp ::redirect-to-root [_]
   (responses/redirect-for-form (routing/path-for :pages/root)))
 ```
 
@@ -73,8 +73,8 @@
    [publicator.web.forms.post.params :as form]
    [publicator.web.routing :as routing]))
 
-(defmethod responders.base/result->resp ::interactor/initial-params [[_ params] [id]]
-  (let [cfg  {:url    (routing/path-for :post.update/process {:id (str id)})
+(defmethod responders.base/result->resp ::interactor/initial-params [[_ post params]]
+  (let [cfg  {:url    (routing/path-for :post.update/process {:id (-> post :id str)})
               :method :post}
         form (form/build cfg params)]
     (responses/render-form form)))
@@ -110,8 +110,7 @@
 
 (t/deftest initial-params
   (let [result (factories/gen ::interactor/initial-params)
-        args   [1]
-        resp   (responders.base/result->resp result args)]
+        resp   (responders.base/result->resp result)]
     (t/is (http-predicates/ok? resp))))
 ```
 

@@ -143,7 +143,7 @@ url параметры, в нашем случае - `id`.
       (if (vector? resp)
         (let [[interactor & args] resp
               result              (apply interactor args)]
-          (responders.base/result->resp result args))
+          (responders.base/result->resp result))
         resp))))
 ```
 

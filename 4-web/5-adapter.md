@@ -35,7 +35,7 @@
   (fn [req]
     (let [[interactor & args] (handler req)
           result              (apply interactor args)]
-      (responder result args))))
+      (responder result))))
 
 (def handler
   (-> controller
@@ -46,8 +46,6 @@
 
 Middleware и handler существуют в единсвенном экземляре, тривиальны и
 не требуют модульного тестирования.
-
-Middleware также передает в респондер аргументы интерактора, для которых этот ответ был получен.
 
 Контроллеры и респондеры не зависят друг от друга.
 Обратите внимание, что контроллер не вызывает интерактор, а просто
