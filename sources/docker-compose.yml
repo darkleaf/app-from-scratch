@@ -1,5 +1,9 @@
 version: '3'
 
+volumes:
+  m2:
+  gitlibs:
+
 services:
   app:
     image: clojure:tools-deps-alpine
@@ -9,7 +13,8 @@ services:
       - "4444:4444" # nrepl
       - "4445:4445" # http
     environment:
-      - "GITLIBS=.gitlibs"
-      - "CLJ_CONFIG=${PWD}/docker-clojure"
+      - "CLJ_CONFIG=${PWD}/.docker-clojure"
     volumes:
-      - ".:${PWD}:cached"
+      - ".:${PWD}:cached" # cached - MacOS option
+      - m2:/root/.m2
+      - gitlibs:/root/.gitlibs

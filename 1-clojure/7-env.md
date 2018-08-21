@@ -1,7 +1,11 @@
-# tools.deps.alpha
+# Окружение для разработки
+
+Ранее мы использовали сервис repl.it и теперь настал момент для установки полноценного окружения.
+
+## tools.deps
 
 Для управления зависимостями воспользуемся утилитой
-[tools.deps.alpha](https://github.com/clojure/tools.deps.alpha)
+[tools.deps](https://github.com/clojure/tools.deps.alpha)
 от разработчиков clojure.
 
 Изначально clojure не имела утилит и распространялась в
@@ -26,20 +30,21 @@
 + запускать repl
 + задавать различные entry point, подобно разделу `scripts` в `package.json`
 
-Он хранит конфигурацию проекта в файле `deps.edn` размещенном в корне проекта.
+Он хранит конфигурацию проекта в файле `deps.edn`, размещенном в корне проекта.
+Также можно создать файл `~/.clojure/deps.edn`, который будет использоваться для всех проектов.
+В нем стоит указывать конфигурацию, специфичную для вас - версии repl и т.п.
 
 [EDN](https://github.com/edn-format/edn) расшифровывается как extensible data notation.
 Он использует clojure синтаксис и поддерживает все структуры данных clojure.
 Можно провести аналогию форматом JSON, который использует javascript синтаксис.
 
-
-Прежде чем двигаться дальше нужно изучить документацию:
+Прежде чем двигаться дальше стоит изучить документацию:
 
 + https://clojure.org/guides/getting_started
 + https://clojure.org/guides/deps_and_cli
 + https://clojure.org/reference/deps_and_cli
 
-# Docker
+## Docker
 
 Есть готовые образы: https://hub.docker.com/_/clojure/
 
@@ -53,30 +58,20 @@ run --rm -it clojure:tools-deps-alpine clojure
 run --rm -it clojure:tools-deps clojure
 ```
 
-# Связь неймспейсов и файлов
+## Repl
 
-Clojure использует
-+ `lisp-case` символов и кейвородов
-+ `CamelCase` для записей, типов, протоколов и взаимодействия с java
+Т.к. стандартный repl малофункционален, то мы воспользуемся [rebel-readline](https://github.com/bhauman/rebel-readline) вместо него.
 
-Каждый файл содержит один неймспейс. При этом `lisp-case` преобразуется в `snake_case`.
-Например, неймспейс `project-name.cool-ns` будет записан в файле
-`src/project_name/cool_ns.clj`.
+Этот repl легко расширяется, и я сделал собственный вариант, который позволяет:
 
-# Repl
-
-Воспользуемся нестандартным repl [rebel-readline](https://github.com/bhauman/rebel-readline).
-
-Он расширяется, и я сделал собственный вариант, который умеет:
-
-+ перезагружать код из измененных файлов
++ перезагружать код в измененных файлах
 + запускать тесты
 
 Подробности - https://github.com/darkleaf/repl-tools-deps
 
 Если вы не работали с emacs, и не планируете его изучение - это ваш выбор.
 
-# Emacs + Cider
+## Emacs + Cider
 
 Наверняка есть и другие реадкторы с поддержкой интеграции с repl, но emacs - by design ориентирован
 на интерактивную разработку и lisp подобные языки.
@@ -91,18 +86,29 @@ Clojure использует
 
 Я написал простую обертку - https://github.com/darkleaf/cider-tools-deps
 
-# Parinfer
+## Parinfer
 
 Расставлять и выравнивать скобки - неблагодарное занятие.
 Но есть плагин для множества редакторов, облегчающий редактирование lisp выражений:
 
 https://shaunlebron.github.io/parinfer/
 
-# Code reloading
+## Code reloading
 
-Для clojure есть механизм перезагрузки кода без перезагрузки jvm процесса:
+Для clojure есть библиотека для перезагрузки кода без перезагрузки jvm процесса.
+Это [tools.namespace](https://github.com/clojure/tools.namespace).
+Ее использует и cider и repl-tools-deps.
 
-https://github.com/clojure/tools.namespace
+Пока мы будем работаьт с stateless кодом и он перезагружается тривиально.
+В дальнейшем мы столкнемся с stateful кодом и я покажу как с ним работать.
 
-Для stateless кода все тривиально. А как перезагружать stateful код я расскажу позже,
-когда появится такая необходимость.
+Для перезагрузки кода используйте:
+
++ `:repl/reload` для repl-tools-deps
++ `C-c C-x` для cider.
+
+## Примеры кода
+
+По ходу изложения будут даваться примеры кода.
+Все они доступны в директории [sources](sources].
+В readme даны инструкции по запуску repl/cider.
