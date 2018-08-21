@@ -9,3 +9,4 @@
   автора языка - Rich Hickey
 + [brave clojure](https://www.braveclojure.com/clojure-for-the-brave-and-true) - отличная книга о clojure
 + [clojurecourse.by](https://clojurecourse.by) - материалы русскоязычных курсов
++ [Clojure Koans](https://github.com/functional-koans/clojure-koans)

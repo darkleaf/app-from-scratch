@@ -1,0 +1,15 @@
+(ns either.core)
+
+;; stubs for successeful compilation
+(declare left)
+(declare right)
+(declare extract)
+(declare left?)
+(declare right?)
+(declare invert)
+(declare bimap)
+(declare map-left)
+(declare map-right)
+(defmacro let= [& _])
+(declare >>=)
+(defmacro >> [& _])
