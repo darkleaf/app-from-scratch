@@ -8,7 +8,7 @@
 (defn user-factory [login]
   (->User (*id-generator*) login))
 
-(defn ^:dynamic create-user-use-case [login]
+(defn create-user-use-case [login]
   (let [user (user-factory login)]
     (*notifier* user)
     user))
@@ -35,8 +35,8 @@
     (prn user)))
 
 (defn main []
-  (binding [*id-generator*         (->id-generator)
-            *notifier*             (->notifier)]
+  (binding [*id-generator* (->id-generator)
+            *notifier*     (->notifier)]
     (routing {:url "/users", :params {:login "Admin"}})))
 
 (comment
