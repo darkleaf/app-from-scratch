@@ -1,6 +1,9 @@
 Черновик. Не весь материал изложен. Цель ченовика - собрать обратную связь.
 
-https://darkleaf.github.io/app-from-scratch/
+Для удобства чтения поставьте плагин
+[Octotree](https://chrome.google.com/webstore/detail/octotree/bkhaagjahfmjljalopjnoealnfndnagc?hl=ru).
+Читайте по номерам параграфов.
+Отдельного сайта, epub, pdf нет.
 
 # 2.0
 
