@@ -1,127 +1,54 @@
-**DRAFT**
+# Реализация интеракторов
 
+Рассмотрим 2 интерактора. Остальные рассмотрите самостоятельно.
 
-Не все интеракторы имеют эти 3 функции, часто достаточно одного `process`.
+## Отображение поста
 
-Операция разрешена, если в текущей сессии пользователь разлогинен.
+Помимо аттрибутов поста ответ должен содержать идентификатор и имя автора.
+[Ранее](/3-core/2-use-cases/4-queries) мы рассматривали устройство `abstractions.post-queries`.
 
-Форма может содержать предварительно заполненые поля,
-например, регион проживания, опредленный по ip адресу.
-
-При обработке формы мы должны выполнить следующие шаги:
-
-+ проверить, разрешена ли операция
-+ провалидировать входные параметры
-+ проверить, что пользователь не зарегистриован
-+ создать и сохранить пользователя
-+ залогинить пользователя
-+ вернуть пользователя
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Ниже представлен код, который релизует эти 2 интерактора.
-За них отвечают функции `initial-params` и `process`.
+Интерактор содержит только метод `process`, т.к. нам не нужна форма и все пользователи
+системы могут смотреть все посты. Результатом может быть или успех или неудача из-за того,
+что поста нет в хранилище.
 
 ```clojure
-(ns publicator.use-cases.interactors.user.register
+(ns publicator.use-cases.interactors.post.show
   (:require
-   [publicator.use-cases.abstractions.storage :as storage]
-   [publicator.use-cases.abstractions.user-queries :as user-q]
    [publicator.use-cases.services.user-session :as user-session]
-   [publicator.domain.aggregates.user :as user]
+   [publicator.use-cases.abstractions.post-queries :as post-q]
+   [publicator.domain.aggregates.post :as post]
    [darkleaf.either :as e]
-   [clojure.spec.alpha :as s]
-   [publicator.utils.spec :as utils.spec]))
+   [clojure.spec.alpha :as s]))
 
-(s/def ::params (utils.spec/only-keys :req-un [::user/login
-                                               ::user/full-name
-                                               ::user/password]))
+(defn- get-by-id= [id]
+  (if-let [post (post-q/get-by-id id)]
+    (e/right post)
+    (e/left [::not-found])))
 
-(defn- check-authorization= []
-  (if (user-session/logged-in?)
-    (e/left [::already-logged-in])
-    (e/right [::authorized])))
-
-(defn- check-params= [params]
-  (if-let [exp (s/explain-data ::params params)]
-    (e/left [::invalid-params exp])))
-
-(defn- check-not-registered= [params]
-  (if (user-q/get-by-login (:login params))
-    (e/left [::already-registered])))
-
-(defn- create-user [params]
-  (storage/tx-create (user/build params)))
-
-(defn initial-params []
+(defn process [id]
   (e/extract
-   (e/let= [ok (check-authorization=)]
-     [::initial-params {}])))
+   (e/let= [user (user-session/user)
+            post (get-by-id= id)]
+     [::processed post])))
 
-(defn process [params]
-  (e/extract
-   (e/let= [ok   (check-authorization=)
-            ok   (check-params= params)
-            ok   (check-not-registered= params)
-            user (create-user params)]
-     (user-session/log-in! user)
-     [::processed user])))
-
-(defn authorize []
-  (e/extract
-   (check-authorization=)))
-
-(s/def ::already-logged-in (s/tuple #{::already-logged-in}))
-(s/def ::invalid-params (s/tuple #{::invalid-params} map?))
-(s/def ::already-registered (s/tuple #{::already-registered}))
-(s/def ::initial-params (s/tuple #{::initial-params} map?))
-(s/def ::processed (s/tuple #{::processed} ::user/user))
-(s/def ::authorized (s/tuple #{::authorized}))
-
-(s/fdef initial-params
-  :args nil?
-  :ret (s/or :ok  ::initial-params
-             :err ::already-logged-in))
+(s/def ::not-found (s/tuple #{::not-found}))
+(s/def ::processed (s/tuple #{::processed} ::post-q/post))
 
 (s/fdef process
-  :args (s/cat :params any?)
+  :args (s/cat :id ::post/id)
   :ret (s/or :ok  ::processed
-             :err ::already-logged-in
-             :err ::invalid-params
-             :err ::already-registered))
-
-(s/fdef authorize
-  :args nil?
-  :ret (s/or :ok  ::authorized
-             :err ::already-logged-in))
+             :err ::not-found))
 ```
 
-Как видно, код полностью соответствует словестному описанию.
+Для моделирования вычислений,  могут окончиться неудачей восользуемся монадой either,
+которую мы реализовывали [ранее](1-clojure/6-practice.md).
 
-Интерактор использует монаду either для реализации вычислений, которые могут окончиться неудачей.
-Мы уже реализовывали ее [ранее](1-clojure/6-practice.md).
-
-Для наглядности посмотрите тесты. Фейковые реализации устанавиваются с помощью
-`(t/use-fixtures :each fakes/fixture)`.
+Спецификация `process` описывает все возможные ответы.
 
 ```clojure
-(ns publicator.use-cases.interactors.user.register-test
+(ns publicator.use-cases.interactors.post.show-test
   (:require
-   [publicator.use-cases.interactors.user.register :as sut]
-   [publicator.use-cases.services.user-session :as user-session]
-   [publicator.use-cases.abstractions.storage :as storage]
-   [publicator.use-cases.abstractions.user-queries :as user-q]
+   [publicator.use-cases.interactors.post.show :as sut]
    [publicator.use-cases.test.fakes :as fakes]
    [publicator.utils.test.instrument :as instrument]
    [publicator.use-cases.test.factories :as factories]
@@ -131,59 +58,148 @@
 (t/use-fixtures :once instrument/fixture)
 
 (t/deftest process
-  (let [params     (factories/gen ::sut/params)
-        [tag user] (sut/process params)]
-    (t/testing "success"
-      (t/is (= ::sut/processed tag)))
-    (t/testing "logged in"
-      (t/is (user-session/logged-in?)))
-    (t/testing "persisted"
-      (t/is (some? (storage/tx-get-one (:id user)))))))
-
-(t/deftest already-registered
-  (let [params (factories/gen ::sut/params)
-        _      (factories/create-user {:login (:login params)})
-        [tag]  (sut/process params)]
-    (t/testing "has error"
-      (t/is (= ::sut/already-registered tag)))
-    (t/testing "not sign in"
-      (t/is (user-session/logged-out?)))))
-
-(t/deftest already-logged-in
-  (let [user   (factories/create-user)
-        _      (user-session/log-in! user)
-        params (factories/gen ::sut/params)
-        [tag]  (sut/process params)]
-    (t/testing "has error"
-      (t/is (= ::sut/already-logged-in tag)))))
-
-(t/deftest invalid-params
-  (let [params  {}
-        [tag _] (sut/process params)]
-    (t/testing "error"
-      (t/is (= ::sut/invalid-params tag)))))
+  (let [post       (factories/create-post)
+        post-id    (:id post)
+        user       (factories/create-user {:posts-ids #{post-id}})
+        [tag post] (sut/process (:id post))]
+    (t/is (= ::sut/processed tag))
+    (t/is (some? post))))
 ```
 
-Желательно покрыть тестами все случаи. Эти случаи указаны в спецификации функций:
+Желательно, чтобы тесты покрывали все возможные ответы. Вы даже можете на основе спецификаций
+проверять наличие тестов для каждого типа ответа, но не будем отвлекаться.
+
+## Редактирование поста
+
+Прежде всего мы должны проверить, что пользователь злогинен и является автором этого поста.
+Затем мы проверяем проверяем новые атрибуты поста, при этом мы не должны записать лишние поля,
+которые может передать злоумышленник.
+Далее мы устанавливаем изменненые атрибуты.
 
 ```clojure
+(ns publicator.use-cases.interactors.post.update
+  (:require
+   [publicator.domain.aggregates.post :as post]
+   [publicator.domain.identity :as identity]
+   [publicator.use-cases.services.user-session :as user-session]
+   [publicator.use-cases.abstractions.storage :as storage]
+   [publicator.utils.spec :as utils.spec]
+   [darkleaf.either :as e]
+   [clojure.spec.alpha :as s]))
+
+(s/def ::params (utils.spec/only-keys :req-un [::post/title ::post/content]))
+
+(defn- check-authorization= [t id]
+  (let [iuser (user-session/iuser t)]
+    (cond
+      (nil? iuser)                             (e/left [::logged-out])
+      (not (contains? (:posts-ids @iuser) id)) (e/left [::not-authorized])
+      :else                                    (e/right [::authorized]))))
+
+(defn- find-post= [t id]
+  (if-some [ipost (storage/get-one t id)]
+    (e/right ipost)
+    (e/left [::not-found])))
+
+(defn- check-params= [params]
+  (if-some [ed (s/explain-data ::params params)]
+    (e/left [::invalid-params ed])))
+
+(defn- update-post [ipost params]
+  (dosync (alter ipost merge params)))
+
+(defn- post->params [post]
+  (select-keys post [:title :content]))
+
+(defn initial-params [id]
+  (storage/with-tx t
+    (e/extract
+     (e/let= [ok     (check-authorization= t id)
+              ipost  (find-post= t id)
+              params (post->params @ipost)]
+       [::initial-params @ipost params]))))
+
+(defn process [id params]
+  (storage/with-tx t
+    (e/extract
+     (e/let= [ok    (check-authorization= t id)
+              ok    (check-params= params)
+              ipost (find-post= t id)]
+       (update-post ipost params)
+       [::processed @ipost]))))
+
+(defn authorize [ids]
+  (storage/with-tx t
+    (->> ids
+         (map #(check-authorization= t %))
+         (map e/extract))))
+
+(s/def ::logged-out (s/tuple #{::logged-out}))
+(s/def ::invalid-params (s/tuple #{::invalid-params} map?))
+(s/def ::not-found (s/tuple #{::not-found}))
+(s/def ::not-authorized (s/tuple #{::not-authorized}))
+(s/def ::initial-params (s/tuple #{::initial-params} ::post/post map?))
+(s/def ::processed (s/tuple #{::processed} ::post/post))
+(s/def ::authorized (s/tuple #{::authorized}))
+
 (s/fdef initial-params
-  :args nil?
+  :args (s/cat :id ::post/id)
   :ret (s/or :ok  ::initial-params
-             :err ::already-logged-in))
+             :err ::logged-out
+             :err ::not-authorized
+             :err ::not-found))
 
 (s/fdef process
-  :args (s/cat :params any?)
+  :args (s/cat :id ::post/id
+               :params any?)
   :ret (s/or :ok  ::processed
-             :err ::already-logged-in
-             :err ::invalid-params
-             :err ::already-registered))
+             :err ::logged-out
+             :err ::not-authorized
+             :err ::not-found
+             :err ::invalid-params))
 
 (s/fdef authorize
-  :args nil?
-  :ret (s/or :ok  ::authorized
-             :err ::already-logged-in))
+  :args (s/cat :ids (s/coll-of ::post/id))
+  :ret (s/coll-of (s/or :ok  ::authorized
+                        :err ::logged-out
+                        :err ::not-found
+                        :err ::not-authorized)))
+
 ```
 
-В проекте отсутствуют тесты для `inital-params` и `process`,
-вы можете, в качестве парактики, добавить их.
+`clojure.spec` из коробки не поддерживает строгую вализацию ключей, поэтому воспользуемся
+собственным макросом `utils.spec/only-keys`.
+
+Пост - множественный ресурс, в отличие от, например, регистрации.
+Скажем, при отображении списка постов нужно показать пользователю,
+какие посты он может редактировать, а какие нет.
+По этой причине `authorize` должен принимать множество идентификаторов,
+чтобы избежать проблемы N+1.
+
+В нашем случае `check-authorization=` оперирует только идентификатором поста и не нужно
+выбирать из хранилища все посты для переданных `ids` в `authorize`.
+Но если бы нам нужно было быть в `check-authorization=` использовать сам пост, то можно
+воспользоваться identity-map:
+
+```clojure
+(defn- check-authorization= [t id]
+  (let [iuser (user-session/iuser t)
+        ipost (storage/get-one t id)] ;; <1>
+    (some-logic iuser ipost)))
+
+(defn authorize [ids]
+  (storage/with-tx t
+    (storage/preload ids) ;; <2>
+    (->> ids
+         (map #(check-authorization= t %))
+         (map e/extract))))
+```
+
+Как видно, `check-authorization=` принимает объект транзакции `t`, который хранит
+кэш выбранных сущностей в рамках этой транзакции. Поэтому в <1> будет выборка из кэша,
+т.к. в <2> мы предварительно загрузили все сущности одним запросом.
+
+## Задание
+
+Самостоятельно посмотрите оставшиеся интеракторы и их тесты.
+Тесты покрывают не все случаи, допишите их.
