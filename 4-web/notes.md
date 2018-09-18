@@ -1,3 +1,14 @@
+[ ] 5 - session
+[x] 6 - adapter
+[x] 7
+[x] 8 - responder
+[ ] 9 - presenter
+[ ] 10 - view
+[ ] 11 - forms
+[ ] 12 - security: anti-forgery, шифрование id
+
+***
+
 можно перебрать все шаблонизаторы
 
 + hiccup,
