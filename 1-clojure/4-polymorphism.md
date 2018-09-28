@@ -277,6 +277,52 @@
   (assert (= val (method instance))))
 ```
 
+## Функции и методы
+
+Мультиметоды и протоколы позволяют расширять сущестующий "тип".
+Это позволяют делать и другие языки, например, в js можно добавить метод экземлярам:
+
+```javascript
+String.prototype.foo = function() { return "foo" };
+"any string".foo() //=> "foo"
+```
+
+Но что, если 2 библиотеки добавят метод с одним названием? Победит последний.
+
+Благодаря префиксной записи вызов (мульти)метода не отличается от вызова функции:
+
+```clojure
+(ns defenitions)
+
+(defn example-fn [x] :fn)
+
+(defmulti example-mulitmethod identity)
+
+(defprotocol P
+  (example-method [this]))
+
+;; ~~~~~~~~~~~~~~~~
+(ns usage
+  (:require [defenitions]))
+
+(deftype T [])
+
+(extend-type T
+  defenitions/P
+  (example-method [this] :method))
+
+(defmethod defenitions/example-mulitmethod :default [_] :multimethod)
+
+(def instance (T.))
+(defenitions/example-fn instance)
+(defenitions/example-mulitmethod instance)
+(defenitions/example-method instance)
+```
+
+Таким образом расширения "типа" доступны через неймспейс и не конфликтуют между собой.
+Однако, это не относится к реализации протокола напрямую через `deftype` или `defrecord`,
+т.к. методы java класса не имеют неймспейса.
+
 ## Bechmark
 
 Бенчмарк с помощью [criterium](https://github.com/hugoduncan/criterium).
