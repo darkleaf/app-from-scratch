@@ -53,7 +53,8 @@ Use Case не могут вызывать друг-друга.
 
 ![Boundatries](img/boundaries.png)
 
-Пример на ruby:
+Эту диаграму сложно понять без примера.
+Вот пример на ruby:
 
 ```ruby
 
@@ -81,37 +82,8 @@ view.deliver view_model
 ```
 
 При таком подходе получается, что сценарий устанавливает презентеру `response_model`.
-Т.е. презентер имеет состояние. Такой подход полезен в статических языках, ведь
-презентер никак не связан с контреллером и наоборот.
+Т.е. презентер имеет состояние.
 
-Но в динамических и особенно в функциональных языках такой подход выглядит странным.
-И можно поступить следующим образом:
-
-```clojure
-(defn build-controller [interactor presenter view]
-  (fn [request]
-    (let [request-model  (do-smth request)
-          response-model (interactor request-model)
-          view-model     (presenter response-model)]
-      (view view-model))))
-
-(defn interactor [request-model]
-  (let [response-model (do-smth request-model)]
-    response-model))
-
-(defn presenter [response-model]
-  (let [view-model (do-smth response-model)]
-    view-model))
-
-(defn view [view-model]
-  (let [html-string (do-smth view-model)]
-    html-string))
-
-(let [controller (build-controller interactor presenter view)]
-  (controller request))
-```
-
-Т.е. интерактор, котнтроллер, презентер и представление функции без состояния.
-При этом контроллер знает о "интерфейсе" презентера и представления,
-но этот интерфейс - просто функция одного аргумента.
-При этом не нарушается DIP.
+Позднее, мы
+[разберем](/4-web/6-adapter.md)
+как это соотносится с web.
