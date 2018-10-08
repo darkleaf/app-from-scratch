@@ -1,10 +1,4 @@
-![App From Scratch](/cover.png)
-
-[Герератор обложки](https://dev.to/rly)
-
-
 Черновик. Не весь материал изложен. Цель ченовика - собрать обратную связь.
-
 
 Для удобства чтения поставьте плагин
 [Octotree](https://chrome.google.com/webstore/detail/octotree/bkhaagjahfmjljalopjnoealnfndnagc?hl=ru).
