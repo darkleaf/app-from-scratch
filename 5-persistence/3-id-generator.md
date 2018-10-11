@@ -1,5 +1,44 @@
 # Id generator
 
+Напомню, что `id-generator` имеет один метод `generate`, который возвращает
+положительное целое число:
+
+```clojure
+(ns publicator.domain.abstractions.id-generator
+  (:require
+   [clojure.spec.alpha :as s]))
+
+(defprotocol IdGenerator
+  (-generate [this]))
+
+(declare ^:dynamic *id-generator*)
+
+(s/def ::id pos-int?)
+
+(s/fdef generate
+  :ret ::id)
+
+(defn generate []
+  (-generate *id-generator*))
+```
+
+В PostgreSQL для генерации идентификторов используют
+[sequence](https://postgrespro.ru/docs/postgrespro/10/sql-createsequence).
+
+Создадим ее первой миграцией:
+
+```sql
+-- persistence/resources/db/migration/V1__id_sequence.sql
+CREATE SEQUENCE "id-generator";
+```
+
+Генерируется новый идентификатор следующим запросом:
+```sql
+SELECT nextval('id-generator') AS id
+```
+
+Добавим реализацию протокола `IdGenerator`:
+
 ```clojure
 (ns publicator.persistence.id-generator
   (:require
@@ -17,6 +56,8 @@
 (defn binding-map [datasource]
   {#'id-generator/*id-generator* (->IdGenerator datasource)})
 ```
+
+И его тест:
 
 ```clojure
 (ns publicator.persistence.id-generator-test

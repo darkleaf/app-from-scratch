@@ -41,3 +41,7 @@ Flyway автоматически загружает файлы миграций
 
 Миграции хранятся в директории `resources/db/migration` и должны иметь определенные имена,
 вроде `V1__id_sequence.sql`.
+
+Самостоятельно ознакомьтесь с
+[миграциями](https://github.com/darkleaf/publicator/tree/master/persistence/resources/db/migration)
+проекта.

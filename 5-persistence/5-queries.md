@@ -1,5 +1,46 @@
 # Запросы
 
+```sql
+-- persistence/resources/db/migration/V2__create_post.sql
+
+CREATE TABLE "post" (
+  "id" bigint PRIMARY KEY,
+  "title" varchar(255),
+  "content" text,
+  "created-at" timestamp
+);
+```
+
+```sql
+-- persistence/resources/db/migration/V3__create_user.sql
+
+CREATE TABLE "user" (
+  "id" bigint PRIMARY KEY,
+  "login" varchar(255) UNIQUE,
+  "full-name" varchar(255),
+  "password-digest" text,
+  "posts-ids" bigint[],
+  "created-at" timestamp
+);
+```
+
+```sql
+-- :name- post-get-list :? :n
+SELECT "post".*,
+       "user"."id" AS "user-id",
+       "user"."full-name" AS "user-full-name"
+FROM "post"
+JOIN "user" ON "user"."posts-ids" @> ARRAY["post"."id"]
+
+-- :name- post-get-by-id :? :1
+SELECT "post".*,
+       "user"."id" AS "user-id",
+       "user"."full-name" AS "user-full-name"
+FROM "post"
+JOIN "user" ON "user"."posts-ids" @> ARRAY["post"."id"]
+WHERE "post"."id" = :id
+```
+
 ```clojure
 (ns publicator.persistence.post-queries
   (:require
@@ -38,24 +79,6 @@
 (defn binding-map [data-source]
   {#'post-q/*get-list*  (GetList. data-source)
    #'post-q/*get-by-id* (GetById. data-source)})
-```
-
-
-```sql
--- :name- post-get-list :? :n
-SELECT "post".*,
-       "user"."id" AS "user-id",
-       "user"."full-name" AS "user-full-name"
-FROM "post"
-JOIN "user" ON "user"."posts-ids" @> ARRAY["post"."id"]
-
--- :name- post-get-by-id :? :1
-SELECT "post".*,
-       "user"."id" AS "user-id",
-       "user"."full-name" AS "user-full-name"
-FROM "post"
-JOIN "user" ON "user"."posts-ids" @> ARRAY["post"."id"]
-WHERE "post"."id" = :id
 ```
 
 ```clojure
