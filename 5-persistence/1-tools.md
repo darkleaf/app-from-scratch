@@ -1,5 +1,7 @@
 # Инструменты
 
+Здесь перечисляются базовые инструменты, которыми мы будем пользоваться.
+
 ## clojure.jdbc
 
 Для работы с БД воспользуемся [clojure.jdbc](https://funcool.github.io/clojure.jdbc/latest).
