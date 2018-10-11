@@ -508,5 +508,8 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
 
 ## Mappers
 
-самостоятельно
-ссылка на миграции
+Cамостоятельно разберите мапперы Пользователя и Поста:
+
++ [миграции](https://github.com/darkleaf/publicator/tree/master/persistence/resources/db/migration)
++ [реализация](https://github.com/darkleaf/publicator/tree/master/persistence/src/publicator/persistence/storage)
++ [тесты](https://github.com/darkleaf/publicator/tree/master/persistence/test/publicator/persistence/storage)
