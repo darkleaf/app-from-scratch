@@ -1,5 +1,168 @@
 # Storage
 
+Напомню абстракцию хранилища:
+
+```clojure
+(ns publicator.use-cases.abstractions.storage
+  (:require
+   [clojure.spec.alpha :as s]
+   [publicator.domain.abstractions.id-generator :as id-generator]
+   [publicator.domain.abstractions.aggregate :as aggregate]
+   [publicator.domain.identity :as identity]
+   [publicator.utils.ext :as ext]))
+
+(defprotocol Storage
+  (-wrap-tx [this body]))
+
+(defprotocol Transaction
+  (-get-many [t ids])
+  (-create [t state]))
+
+(s/fdef get-many
+  :args (s/cat :tx any?
+               :ids (s/coll-of ::id-generator/id :distinct true))
+  :ret (s/map-of ::id-generator/id ::identity/identity))
+
+(s/fdef create
+  :args (s/cat :tx any?
+               :state ::aggregate/aggregate)
+  :ret ::identity/identity)
+
+(defn get-many [t ids] (-get-many t ids))
+(defn create   [t state] (-create t state))
+
+(declare ^:dynamic *storage*)
+
+(defmacro with-tx
+  "Note that body forms may be called multiple times,
+   and thus should be free of side effects."
+  [tx-name & body-forms-free-of-side-effects]
+  `(-wrap-tx *storage*
+            (fn [~tx-name]
+              ~@body-forms-free-of-side-effects)))
+
+(s/fdef get-one
+  :args (s/cat :tx any?
+               :id ::id-generator/id)
+  :ret (s/nilable ::identity/identity))
+
+(defn get-one [t id]
+  (let [res (get-many t [id])]
+    (get res id)))
+
+;; ...
+```
+
+[Ранее](https://github.com/darkleaf/app-from-scratch/blob/master/2-design/6-persistence.md)
+я рассказывал, что есть 2 стратегии выполнения бизнес транзакций: оптимистический и пессимистический.2
+Эта реализация будет основываться на оптимистической стратегии.
+
+Исходя из специфики бизнес-транзакций можно реализовать и пессимистическую стратегию.
+Отмечу, что для этого не нужно переписывать сами бизнес-транзакции.
+
+При использовании оптимистических блокировок мы свободно читаем любые агрегаты,
+но запоминаем их версии, а при фиксации проверяем, что версии не изменились.
+Если версии изменились, то повторяем бизнес-транзакцию.
+
+Каждому агрегату будет соответствовать свой маппер, который реализует специфичную для
+этого агрегата persistence логику.
+Каждый маппер должен:
+
++ извлекать(select) агрегаты по списку их идентификаторов
++ вставлять(insert) агрегаты в базу
++ удалять(delete) агрегаты из базы
++ блокировать агрегат и извлекать его версию
+
+Отмечу, что маппер поддерживат только вставку и удаление, но не изменение.
+Для надежности и упрощения кода изменение сведено к удалению и вставке.
+Да, это не оптипмально с точки зрения производительности, зато просто и надежно.
+Если начнутся проблемы с производительностью, можно применить описаную далее оптимизацию.
+
+В конце бизнес-транзакции нужно начать sql транзакцию и вычитать версии изменившихся
+агрегатов. Т.к. транзакции идут паралельно, то запрос должен содержать блокировку
+`FOR UPDATE`, чтобы другие тразакции дождались изменений в текущей транзакции.
+
+Протокол маппера:
+
+```clojure
+(defprotocol Mapper
+  (-lock   [this conn ids])
+  (-select [this conn ids])
+  (-insert [this conn aggregates])
+  (-delete [this conn ids]))
+
+(s/def ::mapper #(satisfies? Mapper %))
+
+(s/fdef lock
+  :args (s/cat :this ::mapper, :conn any?, :ids (s/coll-of ::id-generator/id))
+  :ret (s/coll-of ::versioned-id))
+
+(s/fdef select
+  :args (s/cat :this ::mapper, :conn any?, :ids (s/coll-of ::id-generator/id))
+  :ret (s/coll-of ::versioned-aggregate))
+
+(s/fdef insert
+  :args (s/cat :this ::mapper, :conn any?, :aggregates (s/coll-of ::aggregate/aggregate))
+  :ret any?)
+
+(s/fdef delete
+  :args (s/cat :this ::mapper, :conn any?, :ids (s/coll-of ::id-generator/id))
+  :ret any?)
+```
+
+Для тестирования мы будем использовать тестовый агрегат, содержащий одно поле - счетчик:
+
+```clojure
+(defrecord TestEntity [id counter]
+  aggregate/Aggregate
+  (id [_] id)
+  (spec [_] any?))
+```
+
+Эта сущность будет храниться в таблице:
+
+```sql
+CREATE TABLE "test-entity" (
+  "id" bigint PRIMARY KEY,
+  "counter" integer
+);
+```
+
+Отмечу, что эта таблица не имееет поля "версия".
+В PostgreSQL каждая таблица содержит служебную колонку `xmin`, будем использовать ее
+для отслеживания версии, т.к. нам достаточно опредить совпадают версии или нет.
+
+`xmin` - Идентификатор (код) транзакции, добавившей строку этой версии.
+(Версия строки — это её индивидуальное состояние;
+при каждом изменении создаётся новая версия одной и той же логической строки.)
+[Подробнее](https://postgrespro.ru/docs/postgrespro/10/ddl-system-columns).
+
+Тестовый маппер использует следующие запросы:
+
+```sql
+-- :name- drop-test-entity-table :! :raw
+DROP TABLE "test-entity"
+
+-- :name- test-entity-insert :!
+INSERT INTO "test-entity" VALUES :tuple*:vals;
+
+-- :name- test-entity-select :? :*
+SELECT *, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids)
+
+-- :name- test-entity-delete :!
+DELETE FROM "test-entity" WHERE id IN (:v*:ids)
+
+-- :name- test-entity-locks :? :*
+SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
+```
+
+В процессе исполнения бизнес-транзакции мы отслеживаем какие сущности извлекались, создавались
+или изменялись, так же как отслеживали в [фейковой реализации](/3-core/2-use-cases/3-storage.md).
+
+В конце бизанес-транзакции мы выбираем с блокировкой версии измененных агрегатов,
+если версии не изменились, то группируем агрегаты по типу и производим удаление и вставку
+с помощью мапперов.
+
 
 ```clojure
 (ns publicator.persistence.storage
@@ -186,30 +349,7 @@
    {#'storage/*storage* (Storage. data-source mappers opts)}))
 ```
 
-```sql
--- storage_test.sql
-
--- :name- create-test-entity-table :! :raw
-CREATE TABLE "test-entity" (
-  "id" bigint PRIMARY KEY,
-  "counter" integer
-);
-
--- :name- drop-test-entity-table :! :raw
-DROP TABLE "test-entity"
-
--- :name- test-entity-insert :!
-INSERT INTO "test-entity" VALUES :tuple*:vals;
-
--- :name- test-entity-select :? :*
-SELECT *, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids)
-
--- :name- test-entity-delete :!
-DELETE FROM "test-entity" WHERE id IN (:v*:ids)
-
--- :name- test-entity-locks :? :*
-SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
-```
+Тест повторяет тест [фейковой реализации](/3-core/2-use-cases/3-storage.md):
 
 ```clojure
 (ns publicator.persistence.storage-test
@@ -344,6 +484,27 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
         test (storage/tx-get-one id)]
     (t/is (= n (:counter test)))))
 ```
+
+
+## Оптимизация
+
+Например, у нас есть агрегат Пост, содержащий вложенные комментарии.
+Пост и Комметарий сохраняются в отдельных таблицах.
+Для начальной и новой версии агрегата нужно сгенерировать списки операций вставки:
+
+```clojure
+;; initial
+[[:post {:id 1, :title "123", :content "123"}]
+ [:comment {:id 1, :title "awesome!"}]]
+
+;; current
+[[:post {:id 1, :title "123", :content "123 - addional text"}]
+ [:comment {:id 1, :title "awesome!"}]]
+```
+
+Сравнивая эти списки получаем набор sql операций.
+В данном случае нужно только удалить и вставить строку с постом,
+т.к. комментарии не изменились.
 
 ## Mappers
 
