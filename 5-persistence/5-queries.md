@@ -1,5 +1,51 @@
 # Запросы
 
+Для примера рассмотрим запросы для агрегата Пост, а именнно
+получение списка постов и поста по идентификатору.
+При этом пост должен содержать дополнительные аттрубуты:
+идентификатор и полное имя автора.
+
+Вот абстракция:
+
+```clojure
+(ns publicator.use-cases.abstractions.post-queries
+  (:require
+   [publicator.domain.aggregates.user :as user]
+   [publicator.domain.aggregates.post :as post]
+   [clojure.spec.alpha :as s]))
+
+(defprotocol GetList
+  (-get-list [this]))
+
+(declare ^:dynamic *get-list*)
+
+(s/def ::post (s/merge ::post/post
+                       (s/keys :req [::user/id ::user/full-name])))
+(s/def ::posts (s/coll-of ::post))
+
+(s/fdef get-list
+  :args nil?
+  :ret ::posts)
+
+(defn get-list []
+  (-get-list *get-list*))
+
+
+(defprotocol GetById
+  (-get-by-id [this id]))
+
+(declare ^:dynamic *get-by-id*)
+
+(s/fdef get-by-id
+  :args (s/cat :id ::post/id)
+  :ret (s/nilable ::post))
+
+(defn get-by-id [id]
+  (-get-by-id *get-by-id* id))
+```
+
+Напомню миграции создающие таблицы для постов и пользователей:
+
 ```sql
 -- persistence/resources/db/migration/V2__create_post.sql
 
@@ -24,6 +70,14 @@ CREATE TABLE "user" (
 );
 ```
 
+Обратите внимание, что пользователь хранит идентификаторы постов с помощью postgres
+[массивов](https://postgrespro.ru/docs/postgrespro/10/arrays).
+При этом добвляются
+[операции](https://postgrespro.ru/docs/postgrespro/10/functions-array)
+над массивами, например `@>` - "содержит".
+
+Вот sql реализация запросов:
+
 ```sql
 -- :name- post-get-list :? :n
 SELECT "post".*,
@@ -40,6 +94,11 @@ FROM "post"
 JOIN "user" ON "user"."posts-ids" @> ARRAY["post"."id"]
 WHERE "post"."id" = :id
 ```
+
+Отмечу, что БД не содержит индекса для `posts-ids`, но если вы будете хранить много данных, то
+можете его [добавить](https://postgrespro.ru/docs/postgrespro/10/indexes-types).
+
+Нам осталось использовать эти запросы и выполнить некоторые преобразования типов:
 
 ```clojure
 (ns publicator.persistence.post-queries
