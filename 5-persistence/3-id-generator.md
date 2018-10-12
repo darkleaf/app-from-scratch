@@ -22,7 +22,7 @@
   (-generate *id-generator*))
 ```
 
-В PostgreSQL для генерации идентификторов используют
+В PostgreSQL для генерации идентификаторов используют
 [sequence](https://postgrespro.ru/docs/postgrespro/10/sql-createsequence).
 
 Создадим ее первой миграцией:

@@ -1,8 +1,8 @@
 # Запросы
 
-Для примера рассмотрим запросы для агрегата Пост, а именнно
+Для примера рассмотрим запросы для агрегата Пост, а именно
 получение списка постов и поста по идентификатору.
-При этом пост должен содержать дополнительные аттрубуты:
+При этом пост должен содержать дополнительные аттрибуты:
 идентификатор и полное имя автора.
 
 Вот абстракция:
@@ -70,9 +70,9 @@ CREATE TABLE "user" (
 );
 ```
 
-Обратите внимание, что пользователь хранит идентификаторы постов с помощью postgres
+Обратите внимание, что пользователь хранит идентификаторы постов с помощью postgresql
 [массивов](https://postgrespro.ru/docs/postgrespro/10/arrays).
-При этом добвляются
+При этом добавляются
 [операции](https://postgrespro.ru/docs/postgrespro/10/functions-array)
 над массивами, например `@>` - "содержит".
 
@@ -144,7 +144,7 @@ WHERE "post"."id" = :id
 (ns publicator.persistence.post-queries-test
   (:require
    [clojure.test :as t]
-   [publicator.utils.test.instrument :as instument]
+   [publicator.utils.test.instrument :as instrument]
    [publicator.use-cases.test.factories :as factories]
    [publicator.domain.test.fakes.password-hasher :as fakes.password-hasher]
    [publicator.domain.test.fakes.id-generator :as fakes.id-generator]
@@ -168,7 +168,7 @@ WHERE "post"."id" = :id
     (t)))
 
 (t/use-fixtures :once
-  instument/fixture
+  instrument/fixture
   db/once-fixture)
 
 (t/use-fixtures :each

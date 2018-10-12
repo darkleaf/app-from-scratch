@@ -7,9 +7,9 @@
 
 Мы познакомимся с языком [Clojure](https://clojure.org/)(LISP для JVM),
 принципами SOLID, Clean Architecture,
-паттернами Data Mapper, Unit of Work, Idenity Map. Научимся откладывать принятие технических решений.
+паттернами Data Mapper, Unit of Work, Identity Map. Научимся откладывать принятие технических решений.
 
-Хорошую храктеристику языку дал
+Хорошую характеристику языку дал
 [Никита Прокопов](https://tonsky.livejournal.com/)
 [в интервью](https://habr.com/company/oleg-bunin/blog/420147/):
 

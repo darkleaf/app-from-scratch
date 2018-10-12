@@ -1,4 +1,4 @@
-Черновик. Не весь материал изложен. Цель ченовика - собрать обратную связь.
+Черновик. Не весь материал изложен. Цель черновика - собрать обратную связь.
 
 Для удобства чтения поставьте плагин
 [Octotree](https://chrome.google.com/webstore/detail/octotree/bkhaagjahfmjljalopjnoealnfndnagc?hl=ru).
