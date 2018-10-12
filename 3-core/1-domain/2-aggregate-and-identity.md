@@ -119,7 +119,7 @@
 листинги плюс неймспейс для идентичности и падающий тест валидатора.
 Вам нужно реализовать валидатор.
 
-Ознакомитесь с:
+Ознакомьтесь с:
 
 + https://clojuredocs.org/clojure.core/ref
 + https://clojuredocs.org/clojure.core/set-validator%21 либо используйте опцию `:validator`
