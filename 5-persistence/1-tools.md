@@ -17,6 +17,9 @@
   (jdbc/execute conn "CREATE TABLE foo (id serial, name text);"))
 ```
 
+Есть возможность прописать правила преобразования sql типов в clojure типы и обратно,
+[пример](https://github.com/darkleaf/publicator/blob/master/persistence/src/publicator/persistence/types.clj).
+
 В качестве `dbspec` можно передавать connection pool.
 
 ## Connection pool

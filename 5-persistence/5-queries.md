@@ -103,25 +103,23 @@ WHERE "post"."id" = :id
 ```clojure
 (ns publicator.persistence.post-queries
   (:require
+   [publicator.persistence.types]
    [hugsql.core :as hugsql]
    [hugsql.adapter.clojure-jdbc :as cj-adapter]
    [jdbc.core :as jdbc]
    [publicator.use-cases.abstractions.post-queries :as post-q]
    [publicator.domain.aggregates.post :as post]
-   [publicator.domain.aggregates.user :as user]))
+   [publicator.domain.aggregates.user :as user]
+   [clojure.set :as set]))
 
 (hugsql/def-db-fns "publicator/persistence/post_queries.sql"
   {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)})
 
-(defn- sql->post [raw]
-  (when raw
-    (let [id        (:user-id raw)
-          full-name (:user-full-name raw)]
-      (-> raw
-          (dissoc :user-id :user-full-name)
-          (assoc ::user/id id, ::user/full-name full-name)
-          (update :created-at #(.toInstant %))
-          (post/map->Post)))))
+(defn- sql->post [row]
+  (-> row
+      (set/rename-keys {:user-id        ::user/id
+                        :user-full-name ::user/full-name})
+      (post/map->Post)))
 
 (deftype GetList [data-source]
   post-q/GetList
@@ -133,7 +131,8 @@ WHERE "post"."id" = :id
   post-q/GetById
   (-get-by-id [this id]
     (with-open [conn (jdbc/connection data-source)]
-      (sql->post (post-get-by-id conn {:id id})))))
+      (when-let [row (post-get-by-id conn {:id id})]
+        (sql->post row)))))
 
 (defn binding-map [data-source]
   {#'post-q/*get-list*  (GetList. data-source)

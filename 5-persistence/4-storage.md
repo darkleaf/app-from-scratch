@@ -354,6 +354,7 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
 ```clojure
 (ns publicator.persistence.storage-test
   (:require
+   [publicator.persistence.types]
    [publicator.utils.test.instrument :as instrument]
    [clojure.test :as t]
    [hugsql.core :as hugsql]
@@ -377,26 +378,16 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
 (hugsql/def-db-fns "publicator/persistence/storage_test.sql"
   {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)})
 
-(defn- sql->version [raw]
-  (.getValue raw))
-
-(defn- sql->aggretate [raw]
-  (map->TestEntity raw))
-
 (defn- aggregate->sql [aggregate]
   (vals aggregate))
 
 (defn- row->versioned-aggregate [row]
-  {:aggregate (-> row (dissoc :version) sql->aggretate)
-   :version   (-> row (get :version) sql->version)})
-
-(defn- row->versioned-id [{:keys [id version]}]
-  {:id      id
-   :version (sql->version version)})
+  {:aggregate (-> row (dissoc :version) map->TestEntity)
+   :version   (-> row (get :version))})
 
 (def mapper (reify sut/Mapper
               (-lock [_ conn ids]
-                (map row->versioned-id (test-entity-locks conn {:ids ids})))
+                (test-entity-locks conn {:ids ids}))
               (-select [_ conn ids]
                 (map row->versioned-aggregate (test-entity-select conn {:ids ids})))
               (-insert [_ conn states]
@@ -412,11 +403,9 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
 
 (defn- test-table [t]
   (with-open [conn (jdbc/connection db/*data-source*)]
-    (create-test-entity-table conn)
-    (try
-      (t)
-      (finally
-        (drop-test-entity-table conn)))))
+    (drop-test-entity-table conn)
+    (create-test-entity-table conn))
+  (t))
 
 (t/use-fixtures :once
   instrument/fixture
@@ -511,5 +500,6 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
 Самостоятельно разберите мапперы Пользователя и Поста:
 
 + [миграции](https://github.com/darkleaf/publicator/tree/master/persistence/resources/db/migration)
++ [преобразование типов](https://github.com/darkleaf/publicator/blob/master/persistence/src/publicator/persistence/types.clj)
 + [реализация](https://github.com/darkleaf/publicator/tree/master/persistence/src/publicator/persistence/storage)
 + [тесты](https://github.com/darkleaf/publicator/tree/master/persistence/test/publicator/persistence/storage)
