@@ -43,7 +43,7 @@ Middleware устроена следующим образом:
 
 ## Server
 
-Ring - абстракция над веб сервером, а их может быть много, например:
+Ring - абстракция над веб-сервером, а их может быть много, например:
 
 + [ring-jetty-adapter](https://github.com/ring-clojure/ring/tree/master/ring-jetty-adapter) -
   адаптер для java сервера [jetty](https://www.eclipse.org/jetty/)

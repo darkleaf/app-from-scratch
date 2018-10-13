@@ -6,7 +6,7 @@
 
 Для работы с БД воспользуемся [clojure.jdbc](https://funcool.github.io/clojure.jdbc/latest).
 Кроме нее есть "стандартная" библиотека [clojure/java.jdbc](https://github.com/clojure/java.jdbc).
-Первая показалась мне удобнее. О их различиях можно почитать
+Первая показалась мне удобнее. Об их различиях можно почитать
 [тут](https://funcool.github.io/clojure.jdbc/latest/#why-another-jdbc-wrapper).
 
 Пример использования:

@@ -10,7 +10,8 @@
 
 Java шаблонизаторы принимают `Map<String, Object>` в качестве модели.
 Generics - это особенность Java, но не JVM, а clojure map
-[поддерживают интерфейс Map](https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/APersistentMap.java#L16), поэтому мы можем передавать просто хеши с строковыми ключами.
+[поддерживают интерфейс Map](https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/APersistentMap.java#L16),
+поэтому мы можем передавать просто хеши со строковыми ключами.
 
 Из всех перечисленных шаблонизаторов самым простым является cljstache, с ним и будем работать.
 

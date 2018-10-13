@@ -1,6 +1,6 @@
 # Clean Architecture
 
-Базовое описание дается в статье  https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html.
+Базовое описание дается в статье https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html.
 
 Подробности можно узнать в этих материалах:
 
