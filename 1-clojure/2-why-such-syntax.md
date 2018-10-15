@@ -187,7 +187,7 @@ var youngest = _
 
 ```clojure
 (macroexpand '(if-not false 1 2))
-;; (if (clojure.core/not false) 1 2)
+;; #=> (if (clojure.core/not false) 1 2)
 
 ;; а вот так определяется стандартная функция not
 (defn not
@@ -196,15 +196,20 @@ var youngest = _
    :added "1.0"
    :static true}
   [x] (if x false true))
-```
 
-```clojure
 ;; у класса clojure.lang.Util вызывается статический метод identical
 (defn identical?
   "Tests if 2 arguments are the same object"
   {:added "1.0"}
   ([x y] (clojure.lang.Util/identical x y)))
 ```
+
+## Parinfer
+
+Расставлять и выравнивать скобки - неблагодарное занятие.
+Но есть плагин для множества редакторов, облегчающий редактирование lisp выражений:
+
+https://shaunlebron.github.io/parinfer/
 
 ## Заключение
 

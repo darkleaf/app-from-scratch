@@ -29,7 +29,7 @@ function checkParams(params) {
   return
 }
 
-fucntion logIn(user) {
+function logIn(user) {
     realLogic()
     right
 }

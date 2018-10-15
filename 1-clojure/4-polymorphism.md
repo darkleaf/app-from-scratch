@@ -15,7 +15,7 @@
 
 ```clojure
 (defmulti foo identity)
-;; identity - стандартная функция вида: (fn [x] x)
+;; identity - стандартная функция вида (fn [x] x)
 
 (defmethod foo :a [x]
   [:a x])

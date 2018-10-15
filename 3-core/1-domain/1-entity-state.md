@@ -160,11 +160,12 @@
 
 ## Задание
 
-1. Реализуйте Пользователя(User) с набором полей: id, login, full-name, password-digest, created-at.
-   Параметры конструктора: login, full-name, password.
-2. Функцию `(defn authenticated? [user password])` для проверки пароля.
+1. Возьмите за основу [пример](/sources/3-core/1-domain/1-entity-state).
+2. Реализуйте Пользователя(User) с набором полей: `id`, `login`, `full-name`, `password-digest`, `created-at`.
+   Параметры конструктора: `login`, `full-name`, `password`.
+3. Функцию `(defn authenticated? [user password])` для проверки пароля.
 
-Вам понадобится абстрактный PasswordHasher для получения `password-digest` и сверки пароля.
+Вам понадобится абстрактный `PasswordHasher` для получения `password-digest` и сверки пароля.
 По аналогии нужно предусмотреть возможность задавать текущее время в тестах.
 
 Проверьте себя:

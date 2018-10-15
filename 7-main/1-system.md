@@ -1,5 +1,9 @@
 # System
 
+[Ранее](/4-web/13-system.md),
+мы уже собирали систему. Но она состояла из фейковых реализаций.
+Настало время для промышленных компонентов.
+
 ```clojure
 (ns publicator.main.core
   (:require
@@ -29,6 +33,11 @@
       (component/stop system)
       (System/exit 0))))
 ```
+
+`binding-map` - компонент, содержащий все реализации, кроме `session`,
+т.к. ее реализация
+[устанавливается](https://github.com/darkleaf/publicator/blob/master/web/src/publicator/web/handler.clj#L19)
+в handler.
 
 ```clojure
 (ns publicator.main.binding-map

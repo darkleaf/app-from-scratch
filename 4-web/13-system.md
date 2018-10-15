@@ -100,3 +100,5 @@
 (defn stop []
   (alter-var-root #'system component/stop))
 ```
+
+Таким образом набрав в repl `(start)` вы запустите приложение.

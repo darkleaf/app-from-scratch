@@ -71,15 +71,15 @@ run --rm -it clojure:tools-deps clojure
 
 Если вы не работали с Emacs, и не планируете его изучение - это ваш выбор.
 
+Но если вы никогда не использовали редактор с интегрированным repl,
+то [вы живете неправильно](https://tonsky.livejournal.com/316868.html).
+
 ## Emacs + Cider
 
 Наверняка есть и другие редакторы с поддержкой интеграции с repl, но Emacs - by design ориентирован
 на интерактивную разработку и lisp подобные языки.
 
-Если вы никогда не использовали редактор с интегрированным repl,
-то [вы живете неправильно](https://tonsky.livejournal.com/316868.html).
-
-[cider](http://docs.cider.mx/en/latest/) - пакет для Emacs, превращающий его в полноценную IDE.
+[cider](http://docs.cider.mx/en/latest/) - пакет для Emacs, превращающий его в полноценную clojure IDE.
 
 Способ подключения [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) через tools.deeps,
 описанный в readme, не работает и к тому же не позволяет задать порт и хост на котором запустится сервер nrepl.
@@ -110,5 +110,5 @@ https://shaunlebron.github.io/parinfer/
 ## Примеры кода
 
 По ходу изложения будут даваться примеры кода.
-Все они доступны в директории [sources](sources].
+Все они доступны в директории [sources](/sources).
 В readme даны инструкции по запуску repl/cider.

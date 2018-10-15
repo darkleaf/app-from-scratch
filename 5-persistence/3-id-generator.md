@@ -33,6 +33,7 @@ CREATE SEQUENCE "id-generator";
 ```
 
 Генерируется новый идентификатор следующим запросом:
+
 ```sql
 SELECT nextval('id-generator') AS id
 ```
