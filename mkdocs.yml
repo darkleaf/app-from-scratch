@@ -2,10 +2,8 @@ site_name: App From Scratch
 repo_url: https://github.com/darkleaf/app-from-scratch
 site_description: Книга о Clean Architecture и Clojure
 site_author: Михаил Кузьмин
-google_analytics: ['UA-127720172-1', 'app-from-scratch.darkleaf.ru']
 
 dev_addr: 0.0.0.0:8000
-# strict: true
 
 nav:
   - Home: index.md
