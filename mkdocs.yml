@@ -1,0 +1,82 @@
+site_name: App From Scratch
+repo_url: https://github.com/darkleaf/app-from-scratch
+site_description: Книга о Clean Architecture и Clojure
+site_author: Михаил Кузьмин
+google_analytics: ['UA-127720172-1', 'app-from-scratch.darkleaf.ru']
+
+dev_addr: 0.0.0.0:8000
+# strict: true
+
+nav:
+  - Home: index.md
+  - Введение:
+    - 0-intro/1-for-whom.md
+    - 0-intro/2-what.md
+  - Clojure:
+    - 1-clojure/0-intro.md
+    - 1-clojure/1-basic-syntax.md
+    - 1-clojure/2-why-such-syntax.md
+    - 1-clojure/3-state-management.md
+    - 1-clojure/3.1-other.md
+    - 1-clojure/4-polymorphism.md
+    - 1-clojure/5-self-reading.md
+    - 1-clojure/6-env.md
+    - 1-clojure/7-either.md
+    - 1-clojure/8-spec.md
+  - Design:
+    - 2-design/1-oo.md
+    - 2-design/2-solid.md
+    - 2-design/3-clean-architecture.md
+    - 2-design/4-ddd.md
+    - 2-design/5-di.md
+    - 2-design/6-persistence.md
+  - Core:
+    - 3-core/0-intro.md
+    - Domain:
+      - 3-core/1-domain/1-entity-state.md
+      - 3-core/1-domain/2-aggregate-and-identity.md
+      - 3-core/1-domain/3-services.md
+    - Use cases:
+      - 3-core/2-use-cases/1-interactor.md
+      - 3-core/2-use-cases/2-session.md
+      - 3-core/2-use-cases/3-storage.md
+      - 3-core/2-use-cases/4-queries.md
+      - 3-core/2-use-cases/5-implementation.md
+      - 3-core/2-use-cases/6-conclusion.md
+    - 3-core/3-conclusion.md
+  - Web:
+    - 4-web/0-intro.md
+    - 4-web/1-ring.md
+    - 4-web/2-component.md
+    - 4-web/3-routing.md
+    - 4-web/4-http-methods.md
+    - 4-web/5-session.md
+    - 4-web/6-adapter.md
+    - 4-web/7-controller.md
+    - 4-web/8-responder.md
+    - 4-web/9-presenter.md
+    - 4-web/10-template.md
+    - 4-web/11-forms.md
+    - 4-web/12-security.md
+    - 4-web/13-system.md
+  - Persistence:
+    - 5-persistence/0-intro.md
+    - 5-persistence/1-tools.md
+    - 5-persistence/2-migrations.md
+    - 5-persistence/3-id-generator.md
+    - 5-persistence/4-storage.md
+    - 5-persistence/5-queries.md
+  - Crypto:
+    - 6-crypto/1-password-hasher.md
+  - Main:
+    - 7-main/0-intro.md
+    - 7-main/1-system.md
+    - 7-main/2-logging.md
+
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - clojure
+    - ruby
+    - javascript
