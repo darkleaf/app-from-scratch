@@ -4,10 +4,7 @@
 Статус - предварительный релиз.
 Цель - собрать обратную связь и улучшить изложение.
 
-Для удобства чтения поставьте плагин
-[Octotree](https://chrome.google.com/webstore/detail/octotree/bkhaagjahfmjljalopjnoealnfndnagc?hl=ru).
-Читайте по номерам параграфов.
-Отдельного сайта, epub, pdf нет.
+[Читать книгу](https://app-from-scratch.darkleaf.ru)
 
 ## 2.0
 
