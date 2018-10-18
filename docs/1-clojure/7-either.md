@@ -726,7 +726,7 @@ https://clojure.org/api/cheatsheet - ваш главный справочный 
 
 ## Ответ
 
-https://github.com/darkleaf/either
+<https://github.com/darkleaf/either>
 
 ## Для любознательных
 
