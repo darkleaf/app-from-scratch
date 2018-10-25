@@ -469,7 +469,7 @@ function process(params) {
 
 ## Шпаргалка
 
-https://clojure.org/api/cheatsheet - ваш главный справочный материал.
+<https://clojure.org/api/cheatsheet> - ваш главный справочный материал.
 Ищите здесь информацию по любой стандартной функции/макросу.
 
 ***
