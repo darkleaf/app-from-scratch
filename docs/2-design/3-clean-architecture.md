@@ -60,7 +60,6 @@ Use Case не могут вызывать друг-друга.
 Вот пример на ruby:
 
 ```ruby
-
 class Interactor
   def initialize(presenter)
     @presenter = presenter
