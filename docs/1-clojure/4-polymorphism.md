@@ -326,7 +326,8 @@ String.prototype.foo = function() { return "foo" };
 ## Benchmark
 
 Бенчмарк с помощью [criterium](https://github.com/hugoduncan/criterium).
-Исходники в виде проекта можно получить [тут](sources/1-clojure/4-polymorphism/bench).
+Исходники в виде проекта можно получить
+[тут](https://github.com/darkleaf/app-from-scratch/tree/master/sources/1-clojure/4-polymorphism/bench).
 
 ```clojure
 (ns bench.bench
