@@ -157,7 +157,7 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
 ```
 
 В процессе исполнения бизнес-транзакции мы отслеживаем какие сущности извлекались, создавались
-или изменялись, так же как отслеживали в [фейковой реализации](/3-core/2-use-cases/3-storage).
+или изменялись, так же как отслеживали в [фейковой реализации](/03-core/02-use-cases/03-storage).
 
 В конце бизнес-транзакции мы выбираем с блокировкой версии измененных агрегатов,
 если версии не изменились, то группируем агрегаты по типу и производим удаление и вставку
@@ -349,7 +349,7 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
    {#'storage/*storage* (Storage. data-source mappers opts)}))
 ```
 
-Тест повторяет тест [фейковой реализации](/3-core/2-use-cases/3-storage):
+Тест повторяет тест [фейковой реализации](/03-core/02-use-cases/03-storage):
 
 ```clojure
 (ns publicator.persistence.storage-test

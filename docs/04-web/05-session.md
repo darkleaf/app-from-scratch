@@ -1,6 +1,6 @@
 # Сессия
 
-Ранее мы рассматривали [абстракцию сессии](/3-core/2-use-cases/2-session)
+Ранее мы рассматривали [абстракцию сессии](/03-core/02-use-cases/02-session)
 теперь займемся её реализацией.
 
 Ring добавляет поддержку http сессии с помощью middleware `ring.middleware.session/wrap-session`.
