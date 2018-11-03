@@ -13,8 +13,8 @@
 
 Информация:
 
-+ Исходники: https://github.com/darkleaf/publicator
-+ Demo: https://darkleaf-publicator2.herokuapp.com/
++ [Исходники](https://github.com/darkleaf/publicator)
++ [Demo](https://darkleaf-publicator2.herokuapp.com/)
 
 Проект структурно разбит на подпроекты.
 Каждый подпроект - clojure проект с собственными зависимостями, управляемыми с помощью
@@ -45,4 +45,4 @@ DDD оперирует понятием Entity - единица предметн
 и содержать `entities`, `services`, `value-objects`.
 Следующий слой будет называться `use-cases`.
 
-Исходники подпроекта: https://github.com/darkleaf/publicator/tree/master/core
+[Исходники подпроекта](https://github.com/darkleaf/publicator/tree/master/core)
