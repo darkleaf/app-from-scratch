@@ -1,7 +1,7 @@
 # System
 
 Ранее мы познакомились к
-[компонентами](https://github.com/darkleaf/app-from-scratch/blob/master/4-web/2-component.md).
+[компонентами](/04-web/02-component.md).
 Я упоминал, что компоненты объединяются в систему. Подробнее о
 [системах](https://github.com/stuartsierra/component#systems).
 
