@@ -1,6 +1,8 @@
 # App from scratch
 
-[Читать книгу](https://app-from-scratch.darkleaf.ru)
+* [Читать книгу](https://app-from-scratch.darkleaf.ru)
+* [epub](https://readthedocs.org/projects/app-from-scratch/downloads/epub/latest/)
+* [pdf](https://readthedocs.org/projects/app-from-scratch/downloads/pdf/latest/)
 
 ## 2.0
 
