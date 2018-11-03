@@ -369,7 +369,6 @@ String.prototype.foo = function() { return "foo" };
                         multi-method (->D)))
 ```
 
-
 ```
 (proto-method (->A))
 Evaluation count : 132892038 in 6 samples of 22148673 calls.

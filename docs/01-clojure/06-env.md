@@ -40,13 +40,13 @@
 
 Прежде чем двигаться дальше стоит изучить документацию:
 
-+ https://clojure.org/guides/getting_started
-+ https://clojure.org/guides/deps_and_cli
-+ https://clojure.org/reference/deps_and_cli
++ <https://clojure.org/guides/getting_started>
++ <https://clojure.org/guides/deps_and_cli>
++ <https://clojure.org/reference/deps_and_cli>
 
 ## Docker
 
-Есть готовые образы: https://hub.docker.com/_/clojure/
+Есть готовые образы: <https://hub.docker.com/_/clojure/>
 
 ```
 # alpine
@@ -67,7 +67,7 @@ run --rm -it clojure:tools-deps clojure
 + перезагружать код в измененных файлах
 + запускать тесты
 
-Подробности - https://github.com/darkleaf/repl-tools-deps
+Подробности - <https://github.com/darkleaf/repl-tools-deps>.
 
 Если вы не работали с Emacs, и не планируете его изучение - это ваш выбор.
 
@@ -84,14 +84,14 @@ run --rm -it clojure:tools-deps clojure
 Способ подключения [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) через tools.deeps,
 описанный в readme, не работает и к тому же не позволяет задать порт и хост на котором запустится сервер nrepl.
 
-Я написал простую обертку - https://github.com/darkleaf/cider-tools-deps
+Я написал простую обертку - <https://github.com/darkleaf/cider-tools-deps>
 
 ## Parinfer
 
 Расставлять и выравнивать скобки - неблагодарное занятие.
 Но есть плагин для множества редакторов, облегчающий редактирование lisp выражений:
 
-https://shaunlebron.github.io/parinfer/
+<https://shaunlebron.github.io/parinfer/>
 
 ## Code reloading
 
