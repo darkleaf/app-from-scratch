@@ -1,0 +1,3 @@
+[submodule "docs/src/recommonmark"]
+	path = docs/src/recommonmark
+	url = https://github.com/rtfd/recommonmark.git

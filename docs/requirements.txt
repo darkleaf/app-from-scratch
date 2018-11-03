@@ -2,8 +2,9 @@ alabaster==0.7.12
 Babel==2.6.0
 certifi==2018.10.15
 chardet==3.0.4
-CommonMark==0.5.4
+commonmark==0.8.1
 docutils==0.14
+future==0.17.1
 idna==2.7
 imagesize==1.1.0
 Jinja2==2.10
@@ -12,7 +13,7 @@ packaging==18.0
 Pygments==2.2.0
 pyparsing==2.3.0
 pytz==2018.7
-recommonmark==0.4.0
+-e git+https://github.com/rtfd/recommonmark.git@fdeeda5f6fe3ed8905deb7a067cc5951a477d091#egg=recommonmark
 requests==2.20.0
 six==1.11.0
 snowballstemmer==1.2.1
