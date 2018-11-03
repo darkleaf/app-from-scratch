@@ -1,3 +1,6 @@
 [submodule "docs/src/recommonmark"]
 	path = docs/src/recommonmark
 	url = https://github.com/rtfd/recommonmark.git
+[submodule "docs/src/sphinx"]
+	path = docs/src/sphinx
+	url = git://github.com/sphinx-doc/sphinx.git
