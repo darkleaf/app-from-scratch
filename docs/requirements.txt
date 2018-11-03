@@ -17,7 +17,7 @@ pytz==2018.7
 requests==2.20.0
 six==1.11.0
 snowballstemmer==1.2.1
-Sphinx==1.8.1
+-e git://github.com/sphinx-doc/sphinx.git@eb44c73b81ff4e603d9452018d145ff3c204f71f#egg=Sphinx
 sphinx-rtd-theme==0.4.2
 sphinxcontrib-websupport==1.1.0
 typing==3.6.6
