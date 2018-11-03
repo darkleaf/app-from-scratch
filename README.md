@@ -1,5 +1,7 @@
 # App from scratch
 
+[![Documentation Status](https://readthedocs.org/projects/app-from-scratch/badge/?version=latest)](https://app-from-scratch.darkleaf.ru/?badge=latest)
+
 * [Читать книгу](https://app-from-scratch.darkleaf.ru)
 * [epub](https://readthedocs.org/projects/app-from-scratch/downloads/epub/latest/)
 * [pdf](https://readthedocs.org/projects/app-from-scratch/downloads/pdf/latest/)
