@@ -11,6 +11,11 @@ App From Scratch
 * epub_
 * pdf_
 
+Поддержать:
+
+* `благодарность за книгу`_
+* `большая благодарность`_
+
 .. toctree::
    :hidden:
    :glob:
@@ -20,3 +25,5 @@ App From Scratch
 .. _`Pull Request`: https://github.com/darkleaf/app-from-scratch/
 .. _epub: https://readthedocs.org/projects/app-from-scratch/downloads/epub/latest/
 .. _pdf: https://readthedocs.org/projects/app-from-scratch/downloads/pdf/latest/
+.. _`благодарность за книгу`: https://yasobe.ru/na/app_from_scratch
+.. _`большая благодарность`: https://yasobe.ru/na/app_from_scratch_big

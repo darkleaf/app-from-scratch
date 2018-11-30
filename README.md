@@ -6,6 +6,11 @@
 * [epub](https://readthedocs.org/projects/app-from-scratch/downloads/epub/latest/)
 * [pdf](https://readthedocs.org/projects/app-from-scratch/downloads/pdf/latest/)
 
+Поддержать:
+
+* [благодарность за книгу](https://yasobe.ru/na/app_from_scratch)
+* [большая благодарность](https://yasobe.ru/na/app_from_scratch_big)
+
 ## 2.0
 
 + описание в ветке master
