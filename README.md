@@ -5,7 +5,6 @@
 * [Читать книгу](https://app-from-scratch.darkleaf.ru)
 * [epub](https://readthedocs.org/projects/app-from-scratch/downloads/epub/latest/)
 * [pdf](https://readthedocs.org/projects/app-from-scratch/downloads/pdf/latest/)
-* telegram: [@app_from_scratch](https://t.me/app_from_scratch)
 
 ## 2.0
 
