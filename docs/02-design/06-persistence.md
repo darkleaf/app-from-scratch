@@ -41,7 +41,7 @@ user.posts.length #=> 2
 o1 = User.first
 o2 = User.find(o1.id)
 
-o1 != o2
+o1.object_id != o2.object_id
 ```
 
 Ваши сущности зависят от фреймворка (см. Dependency Inversion Principle)
