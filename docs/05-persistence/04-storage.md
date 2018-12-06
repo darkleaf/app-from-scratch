@@ -233,7 +233,7 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
       (let [ids-for-select (remove #(contains? @identity-map %) ids)
             selected       (->> mappers
                                 (vals)
-                                (mapcat #(select % conn ids-for-select))
+                                (mapcat #(select % conn ids-for-select)) ;; <1>
                                 (map (fn [{:keys [aggregate version]}]
                                        (let [iaggregate (identity/build aggregate)]
                                          (alter-meta! iaggregate assoc
@@ -498,6 +498,25 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
 Сравнивая эти списки получаем набор sql операций.
 В данном случае нужно только удалить и вставить строку с постом,
 т.к. комментарии не изменились.
+
+***
+
+Возможно, вы обратили внимание на `<1>`.
+Чтобы найти одну запись, нужно выполнить select для *всех* мапперов.
+Такой подход сильно упрощает логику, но ухудшает производительность.
+Если ожидается, что в вашем приложении будет большое кол-во агрегатов,
+то стоит добавить в абстракции поддержку пространств для идентификаторов:
+
+```clojure
+;; было
+(id-generator/generate)
+(storage/get-many t some-ids)
+
+;; стало
+(id-generator/generate :user)
+(storage/get-many t :user some-ids)
+(aggregate/space user) ;; => :user
+```
 
 ## Mappers
 
