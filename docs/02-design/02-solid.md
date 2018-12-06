@@ -3,7 +3,7 @@
 Полнее всего SOLID раскрывается в материалах Роберта Мартина:
 
 + [Clean Architecture](https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164)
-+ [SOLID Pirnciples](https://cleancoders.com/videos/clean-code/solid-principles)
++ [SOLID Principles](https://cleancoders.com/videos/clean-code/solid-principles)
 
 SOLID - набор принципов, следование которым сделает систему поддерживаемой и расширяемой.
 Они перекликаются с идеями Agile, Роберт Мартин один из авторов [Agile manifesto](http://agilemanifesto.org/).
