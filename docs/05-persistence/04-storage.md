@@ -359,11 +359,9 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
 ```clojure
 (ns publicator.persistence.storage-test
   (:require
-   [publicator.persistence.types]
    [publicator.utils.test.instrument :as instrument]
    [clojure.test :as t]
    [hugsql.core :as hugsql]
-   [hugsql.adapter.clojure-jdbc :as cj-adapter]
    [jdbc.core :as jdbc]
    [publicator.domain.abstractions.aggregate :as aggregate]
    [publicator.use-cases.abstractions.storage :as storage]
@@ -380,8 +378,7 @@ SELECT id, xmin AS version FROM "test-entity" WHERE id IN (:v*:ids) FOR UPDATE
 
 ;; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(hugsql/def-db-fns "publicator/persistence/storage_test.sql"
-  {:adapter (cj-adapter/hugsql-adapter-clojure-jdbc)})
+(hugsql/def-db-fns "publicator/persistence/storage_test.sql")
 
 (defn- aggregate->sql [aggregate]
   (vals aggregate))
