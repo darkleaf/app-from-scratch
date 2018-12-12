@@ -29,7 +29,7 @@ Generics - это особенность Java, но не JVM, а clojure map
 
 Вот примеры шаблонов, для презентеров, рассмотренных ранее:
 
-```mustache
+```html
 <!DOCTYPE html>
 <html>
     <head>
@@ -86,7 +86,7 @@ Generics - это особенность Java, но не JVM, а clojure map
 </html>
 ```
 
-```mustache
+```html
 {{#new}}
     <a href="{{url}}" class="btn btn-primary my-3">
         {{text}}
