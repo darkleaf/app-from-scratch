@@ -10,6 +10,7 @@ App From Scratch
 
 * epub_
 * pdf_
+* telegram: `@app_from_scratch`_
 
 Поддержать:
 
@@ -25,5 +26,6 @@ App From Scratch
 .. _`Pull Request`: https://github.com/darkleaf/app-from-scratch/
 .. _epub: https://readthedocs.org/projects/app-from-scratch/downloads/epub/latest/
 .. _pdf: https://readthedocs.org/projects/app-from-scratch/downloads/pdf/latest/
+.. _@app_from_scratch: https://t.me/app_from_scratch
 .. _`благодарность за книгу`: https://yasobe.ru/na/app_from_scratch
 .. _`большая благодарность`: https://yasobe.ru/na/app_from_scratch_big
